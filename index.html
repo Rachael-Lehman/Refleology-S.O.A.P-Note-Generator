@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>SOAP Note Generator</title>
+<style>
+body { font-family: sans-serif; }
+label { display: block; margin-bottom: 5px; }
+textarea { width: 100%; box-sizing: border-box; margin-bottom: 10px; }
+#soapNote { border: 1px solid #ccc; padding: 10px; margin-top: 20px; white-space: pre-wrap; }
+.congestion-area { margin-bottom: 10px; border: 1px solid #ddd; padding: 10px; }
+ul { list-style-type: disc; margin-left: 20px; }
+#copyButton { margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<h1>SOAP Note Generator</h1>
+
+<form id="soapForm">
+ <label for="clientName">Client Name:</label>
+ <input type="text" id="clientName" required><br><br>
+
+ <label for="date">Date:</label>
+ <input type="date" id="date" required><br><br>
+
+ <label for="reflexologist">Reflexologist:</label>
+ <input type="text" id="reflexologist" required><br><br>
+
+ <label for="chiefComplaint">Chief Complaint/Reason for Visit:</label>
+ <textarea id="chiefComplaint" rows="4" required placeholder="i.e., Client reports experiencing increased stress and anxiety."></textarea><br><br>
+
+ <label for="healthHistory">Health History:</label>
+ <textarea id="healthHistory" rows="4" placeholder="i.e., History of generalized anxiety disorder, hypertension."></textarea><br><br>
+
+ <h3>Objective:</h3>
+ <label for="observation">Observation:</label>
+ <textarea id="observation" rows="4" placeholder="i.e., Client appears relaxed, skin on feet is intact."></textarea><br><br>
+
+ <h3>Areas of Congestion and Sensitivity:</h3>
+ <div id="congestionAreas"></div>
+ <button type="button" onclick="addCongestionArea()">Add Congestion Area</button><br><br>
+
+ <label for="sessionType">Type of Session:</label>
+ <input type="text" id="sessionType" required placeholder="i.e., 60-minute reflexology session."></input><br><br>
+
+ <input type="checkbox" id="includeAreasOfEmphasis" checked> Include Areas of Emphasis<br>
+ <label for="areasOfEmphasis">Areas of Emphasis:</label>
+ <textarea id="areasOfEmphasis" rows="4" placeholder="i.e., Focused on liver, kidney, and endocrine reflexes."></textarea><br><br>
+
+ <input type="checkbox" id="includeClientResponse" checked> Include Client Response<br>
+ <label for="clientResponse">Client Response:</label>
+ <textarea id="clientResponse" rows="4" placeholder="i.e., Client reported feeling calmer and more relaxed."></textarea><br><br>
+
+ <input type="checkbox" id="includeRecommendations" checked> Include Recommendations<br>
+ <label for="recommendations">Recommendations:</label>
+ <textarea id="recommendations" rows="4" placeholder="i.e., Advised client to drink plenty of water and practice deep breathing exercises."></textarea><br><br>
+
+ <input type="checkbox" id="includeHomeCare" checked> Include Home Care<br>
+ <label for="homeCare">Home Care:</label>
+ <textarea id="homeCare" rows="4" placeholder="i.e., Instructions for self-reflexology techniques provided."></textarea><br><br>
+
+ <label for="followUp">Follow-up:</label>
+ <input type="text" id="followUp" placeholder="i.e., Schedule next appointment in 2 weeks."></input><br><br>
+
+ <button type="button" onclick="generateSoapNote()">Generate SOAP Note</button>
+</form>
+
+<div id="soapNote"></div>
+<button id="copyButton" onclick="copyToClipboard()" style="display: none;">Copy to Clipboard</button>
+
+<script>
+function addCongestionArea() {
+    const congestionAreas = document.getElementById('congestionAreas');
+    const newArea = document.createElement('div');
+    newArea.classList.add('congestion-area');
+    newArea.innerHTML = `
+        <label>Foot:</label>
+        <select>
+            <option value="Right foot">Right foot</option>
+            <option value="Left foot">Left foot</option>
+            <option value="Bilateral">Bilateral</option>
+        </select><br>
+        <label>Anatomical Area:</label>
+        <select>
+            <option value="Proximal hallux, bilat (cervical)">Proximal hallux, bilat (cervical)</option>
+            <option value="1st Metatarsal, bilateral (thoracic)">1st Metatarsal, bilateral (thoracic)</option>
+            <option value="1st Cuneiform to calcaneus, bilateral (lumbar)">1st Cuneiform to calcaneus, bilateral (lumbar)</option>
+            <option value="Medial edge of posterior calcaneus, bilateral (sacral and coccyx)">Medial edge of posterior calcaneus, bilateral (sacral and coccyx)</option>
+            <option value="Interphalangeal jt of hallux, bilat (jaw)">Interphalangeal jt of hallux, bilat (jaw)</option>
+            <option value="MTP #1-5, bilat (collarbone)">MTP #1-5, bilat (collarbone)</option>
+            <option value="MTP #5, bilat (shoulder)">MTP #5, bilat (shoulder)</option>
+            <option value="Lat. MTP to tuberosity of 5th metat., bilat. (arm)">Lat. MTP to tuberosity of 5th metat., bilat. (arm)</option>
+            <option value="Lat. tuberosity of 5th metat., bilat. (knee/elbow)">Lat. tuberosity of 5th metat., bilat. (knee/elbow)</option>
+            <option value="Lat. tuberosity of 5th metat to calcaneofibular jt., bilat (knee/leg/hip)">Lat. tuberosity of 5th metat to calcaneofibular jt., bilat (knee/leg/hip)</option>
+            <option value="Lat. post. calcaneofibular jt., bilat (pelvis/hip)">Lat. post. calcaneofibular jt., bilat (pelvis/hip)</option>
+            <option value="Distal phalanges #1-5, bilat (brain)">Distal phalanges #1-5, bilat (brain)</option>
+            <option value="Med. aspect from 1st prox. phalanx to post. calcaneus, bilat. (spinal cord)">Med. aspect from 1st prox. phalanx to post. calcaneus, bilat. (spinal cord)</option>
+            <option value="Med. edge 1st proximal phalanx, bilat (cervical)">Med. edge 1st proximal phalanx, bilat (cervical)</option>
+            <option value="Med. edge 1st metat., bilat. (thoracic)">Med. edge 1st metat., bilat. (thoracic)</option>
+            <option value="Med. edge metatarsocuneiform jt. to talonavicular jt., bilat. (lumbar)">Med. edge metatarsocuneiform jt. to talonavicular jt., bilat. (lumbar)</option>
+            <option value="Med. edge talonavicular jt. to post. calc., bilat. (sacrum & coccyx)">Med. edge talonavicular jt. to post. calc., bilat. (sacrum & coccyx)</option>
+            <option value="Plantar aspect prox. edge of med. sesamoid on 1st metat., bilat. (vagus nerve)">Plantar aspect prox. edge of med. sesamoid on 1st metat., bilat. (vagus nerve)</option>
+            <option value="Lat. edge of interphalangeal jt of hallux, bilat. (phrenic nerve)">Lat. edge of interphalangeal jt of hallux, bilat. (phrenic nerve)</option>
+            <option value="Bilat. plantar surface of intermed. distal hallux (pituitary & hypothalamus)">Bilat. plantar surface of intermed. distal hallux (pituitary & hypothalamus)</option>
+            <option value="Med. edge of distal hallux, bilat (pineal)">Med. edge of distal hallux, bilat (pineal)</option>
+            <option value="Med. edge of prox. hallux, bilat (thyroid)">Med. edge of prox. hallux, bilat (thyroid)</option>
+            <option value="Med. aspect of MTP jt. bilat (thymus)">Med. aspect of MTP jt. bilat (thymus)</option>
+            <option value="Bilat. plantar surface of lat. base of metat #1 (adrenal)">Bilat. plantar surface of lat. base of metat #1 (adrenal)</option>
+            <option value="Bilat. med. aspect of post. calc. (uterus/prostate)">Bilat. med. aspect of post. calc. (uterus/prostate)</option>
+            <option value="Lat. aspect of post process of talus, lat. tubercle, bilat. (ovary/testis)">Lat. aspect of post process of talus, lat. tubercle, bilat. (ovary/testis)</option>
+            <option value="Lat. aspect of post. calcaneus to dorsal talocalcaneonavicular jt to med. post. calcaneus, bilat. (ova duct / sperm duct)">Lat. aspect of post. calcaneus to dorsal talocalcaneonavicular jt to med. post. calcaneus, bilat. (ova duct / sperm duct)</option>
+        </select><br>
+<label>Temperature:</label>
+<select>
+    <option value="normal temperature">Normal temperature</option>
+    <option value="cool to touch">Cool to touch</option>
+    <option value="hot to touch">Hot to touch</option>
+</select><br>
+<label>Hydration:</label>
+<select>
+    <option value="normal hydration">Normal hydration</option>
+    <option value="dryness">Dryness</option>
+    <option value="damp or clammy tissue">Damp or clammy tissue</option>
+    <option value="sweatyness">Sweatyness</option>
+    <option value="profusely sweatyness">Profusely sweatyness</option>
+    <option value="boggyness">Boggyness</option>
+    <option value="congestion">Congestion</option>
+    <option value="spongyness">Spongyness</option>
+</select><br>
+<label>Color:</label>
+<select>
+    <option value="normal color">Normal color</option>
+    <option value="Paleness">Paleness</option>
+    <option value="Redness (erythematous)">Redness (erythematous)</option>
+    <option value="Blotchy">Blotchy</option>
+</select><br>
+<label>Tissue Tone:</label>
+<select>
+    <option value="normal tissue tone">Normal tissue tone</option>
+    <option value="resistant tissue tone">Resistant tissue tone</option>
+    <option value="firm tissue tone">Firm tissue tone</option>
+    <option value="stringy/ropy tissue tone">Stringy/ropy tissue tone</option>
+    <option value="contracted tissue tone">Contracted tissue tone</option>
+    <option value="relaxed tissue tone">Relaxed tissue tone</option>
+    <option value="flaccid tissue tone">Flaccid tissue tone</option>
+    <option value="nodular tissue tone">Nodular tissue tone</option>
+</select><br>
+        <button type="button" onclick="removeCongestionArea(this)">Remove</button><hr>
+    `;
+    congestionAreas.appendChild(newArea);
+}
+
+function removeCongestionArea(button) {
+    button.parentElement.remove();
+}
+
+function generateSoapNote() {
+    const clientName = document.getElementById('clientName').value;
+    const date = document.getElementById('date').value;
+    const reflexologist = document.getElementById('reflexologist').value;
+    const chiefComplaint = document.getElementById('chiefComplaint').value;
+    const healthHistory = document.getElementById('healthHistory').value;
+    const observation = document.getElementById('observation').value;
+    const sessionType = document.getElementById('sessionType').value;
+    const areasOfEmphasis = document.getElementById('areasOfEmphasis').value;
+    const clientResponse = document.getElementById('clientResponse').value;
+    const recommendations = document.getElementById('recommendations').value;
+    const homeCare = document.getElementById('homeCare').value;
+    const followUp = document.getElementById('followUp').value;
+    const bones = document.getElementById('congestionAreas').value ? document.getElementById('congestionAreas')?.value : '';
+
+    let soapNote = `SOAP Note\n\nClient Name: ${clientName}\nDate: ${date}\nReflexologist: ${reflexologist}\n\n`;
+    soapNote += `Subjective:\nChief Complaint: ${chiefComplaint}\nHealth History: ${healthHistory}\n\n`;
+    soapNote += `Objective:\nObservation: ${observation}\nBones: ${bones}\n\n`;
+
+    // Hydration
+    const hydration = document.querySelector('select[name="hydration"]')?.value;
+    if (hydration && hydration !== "normal hydration") {
+        soapNote += `Hydration: ${hydration}\n`;
+    }
+
+    // Color
+    const color = document.querySelector('select[name="color"]')?.value;
+    if (color && color !== "normal color") {
+        soapNote += `Color: ${color}\n`;
+    }
+
+    // Tissue Tone
+    const tissueTone = document.querySelector('select[name="tissueTone"]')?.value;
+    if (tissueTone && tissueTone !== "normal tissue tone") {
+        soapNote += `Tissue Tone: ${tissueTone}\n`;
+    }
+
+    // Temperature
+    const temperature = document.querySelector('select[name="temperature"]')?.value;
+    if (temperature && temperature !== "normal temperature") {
+        soapNote += `Temperature: ${temperature}\n`;
+    }
+
+    soapNote += `Assessment:\nType of Session: ${sessionType}\n`;
+
+    if (document.getElementById('includeAreasOfEmphasis').checked) {
+        soapNote += `Areas of Emphasis: ${areasOfEmphasis}\n`;
+    }
+    if (document.getElementById('includeClientResponse').checked) {
+        soapNote += `Client Response: ${clientResponse}\n`;
+    }
+
+    soapNote += `Plan:\n`;
+
+    if (document.getElementById('includeRecommendations').checked) {
+        soapNote += `Recommendations: ${recommendations}\n`;
+    }
+    if (document.getElementById('includeHomeCare').checked) {
+        soapNote += `Home Care: ${homeCare}\n`;
+    }
+
+    soapNote += `Follow-up: ${followUp}\n\n`;
+    soapNote += `Reflexologist Signature: ${reflexologist}\nDate: ${date}`;
+
+    document.getElementById('soapNote').innerText = soapNote;
+    document.getElementById('copyButton').style.display = 'block';
+}
+
+function copyToClipboard() {
+    const soapNote = document.getElementById('soapNote').innerText;
+    navigator.clipboard.writeText(soapNote).then(() => {
+        alert('SOAP Note copied to clipboard!');
+    });
+}
+</script>
+
+</body>
+</html>
