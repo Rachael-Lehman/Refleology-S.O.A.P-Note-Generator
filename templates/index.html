@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+ <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<title>SOAP Note Generator</title>
+</head>
+<body>
+ <nav class="navbar sticky-top navbar-expand-lg navbar-dark bg-dark">
+  <a class="navbar-brand" href="#" style="padding: 10px">SOAP Note Generator</a>
+  <ul class="navbar-nav">
+   <li class="nav-item">
+    <a class="nav-link" href="#basicInfo">Basic Info</a>
+   </li>
+   <li class="nav-item">
+    <a class="nav-link" href="#objective">Objective</a>
+   </li>
+   <li class="nav-item">
+    <a class="nav-link" href="#congestionAreas">Congestion Areas</a>
+   </li>
+  </ul>
+ </nav>
+ <form id="soapForm" class="form-inline">
+  <div style="padding: 10px">
+   <h4 id="basicInfo">Basic Info</h4>
+   <div class="form-group mx-sm-3 mb-2">
+    <label for="clientName">Client Name</label>
+    <input type="text" id="clientName" class="form-control form-control-sm" style="width: 20%" required>
+   </div>
+   <div class="form-group mx-sm-3 mb-2">
+    <label for="date">Date</label>
+    <input type="date" class="form-control" id="date" style="width: 20%" required>
+   </div>
+   <div class="form-group mx-sm-3 mb-2">
+    <label for="reflexologist">Reflexologist</label>
+    <input type="text" id="reflexologist" class="form-control form-control-sm" style="width: 20%" required>
+   </div>
+   <div class="form-group mx-sm-3 mb-2">
+    <label for="chiefComplaint">Chief Complaint/Reason for Visit</label>
+    <textarea class="form-control" aria-label="With textarea" id="chiefComplaint" rows="4" placeholder="i.e., Client reports experiencing increased stress and anxiety."></textarea>
+   </div>
+   <div class="form-group mx-sm-3 mb-2">
+    <label for="chiefComplaint">Health History</label>
+    <textarea class="form-control" aria-label="With textarea" id="healthHistory" rows="4" placeholder="i.e., History of generalized anxiety disorder, hypertension."></textarea>
+   </div>
+  </div>
+  <div style="padding: 10px">
+   <h4 id="objective">Objective</h4>
+   <div class="form-group mx-sm-3 mb-2">
+    <label for="observation">Observation</label>
+    <textarea class="form-control" aria-label="With textarea" id="observation" rows="4" placeholder="i.e., Client appears relaxed, skin on feet is intact."></textarea>
+   </div>
+  </div>
+  <div style="padding: 10px">
+   <h4 id="congestionAreas">Areas of Congestion and Sensitivity</h4>
+   <div id="congestion"></div>
+   <div class="form-group mx-sm-3 mb-2">
+    <button type="button" class="btn btn-primary" onclick="addCongestionArea()">Add Congestion Area</button>
+   </div>
+   <div class="form-group mx-sm-3 mb-2">
+    <label for="sessionType">Type of Session</label>
+    <input type="text" id="sessionType" class="form-control form-control-sm" style="width: 20%" required placeholder="i.e., 60-minute reflexology session.">
+   </div>
+   <div class="form-group mx-sm-3 mb-2">
+    <div class="form-check">
+     <input type="checkbox" class="form-check-input" id="includeAreasOfEmphasis" checked>
+     <label for="includeAreasOfEmphasis">Include Areas of Emphasis</label>
+    </div>
+    <label for="areasOfEmphasis">Areas of Emphasis</label>
+    <textarea class="form-control" aria-label="With textarea" id="areasOfEmphasis" rows="4" placeholder="i.e., Focused on liver, kidney, and endocrine reflexes."></textarea>
+   </div>
+   <div class="form-group mx-sm-3 mb-2">
+    <div class="form-check">
+     <input type="checkbox" class="form-check-input" id="includeClientResponse" checked>
+     <label for="includeClientResponse">Include Client Response</label>
+    </div>
+    <label for="clientResponse">Client Response</label>
+    <textarea class="form-control" aria-label="With textarea" id="clientResponse" rows="4" placeholder="i.e., Client reported feeling calmer and more relaxed."></textarea>
+   </div>
+   <div class="form-group mx-sm-3 mb-2">
+    <div class="form-check">
+     <input type="checkbox" class="form-check-input" id="includeRecommendations" checked>
+     <label for="includeRecommendations">Include Recommendations</label>
+    </div>
+    <label for="recommendations">Recommendations</label>
+    <textarea class="form-control" aria-label="With textarea" id="recommendations" rows="4" placeholder="i.e., Advised client to drink plenty of water and practice deep breathing exercises."></textarea>
+   </div>
+   <div class="form-group mx-sm-3 mb-2">
+    <div class="form-check">
+     <input type="checkbox" class="form-check-input" id="includeHomeCare" checked>
+     <label for="includeHomeCare">Include Home Care</label>
+    </div>
+    <label for="homeCare">Home Care</label>
+    <textarea class="form-control" aria-label="With textarea" id="homeCare" rows="4" placeholder="i.e., Instructions for self-reflexology techniques provided."></textarea>
+   </div>
+   <div class="form-group mx-sm-3 mb-2">
+    <label for="followUp">Follow-up</label>
+    <input type="text" id="followUp" class="form-control form-control-sm" style="width: 20%" placeholder="i.e., Schedule next appointment in 2 weeks.">
+   </div>
+  </div>
+  <div style="padding: 10px">
+   <button type="button" class="btn btn-primary" onclick="generateSoapNote()">Generate SOAP Note</button>
+  </div>
+ </form>
+ <div id="soapNote" style="padding: 10px"></div>
+ <div style="padding: 10px">
+  <button id="copyButton" class="btn btn-primary" onclick="copyToClipboard()" style="display: none;">Copy to Clipboard</button>
+ </div>
+ <script>
+ function addCongestionArea() {
+     const congestionAreas = document.getElementById('congestion');
+     const newArea = document.createElement('div');
+     newArea.innerHTML = `
+        <div class="form-group mx-sm-3 mb-2" style="width: 40%;">
+         <label>Foot</label>
+         <ul class="list-group" id="foot">
+           <li class="list-group-item">
+             <input class="form-check-input me-1" type="radio" value="Right foot" id="rightFoot" name="foot">
+             <label class="form-check-label" for="rightFoot">Right foot</label>
+           </li>
+           <li class="list-group-item">
+             <input class="form-check-input me-1" type="radio" value="Left foot" id="leftFoot" name="foot">
+             <label class="form-check-label" for="leftFoot">Left foot</label>
+           </li>
+           <li class="list-group-item">
+             <input class="form-check-input me-1" type="radio" value="Bilateral" id="bilateral" name="foot">
+             <label class="form-check-label" for="bilateral">Bilateral</label>
+           </li>
+         </ul>
+        </div>
+        <div class="form-group mx-sm-3 mb-2" style="width: 40%;">
+         <label>Anatomical Area</label>
+         <ul class="list-group" id="bones">
+           <li class="list-group-item">
+             <input class="form-check-input me-1" type="radio" value="Proximal hallux, bilat (cervical)" id="proximalHallux" name="area">
+             <label class="form-check-label" for="proximalHallux">Proximal hallux, bilat (cervical)</label>
+           </li>
+           <li class="list-group-item">
+             <input class="form-check-input me-1" type="radio" value="" id="firstMetatarsal" name="area">
+             <label class="form-check-label" for="firstMetatarsal">1st Metatarsal, bilateral (thoracic)</label>
+           </li>
+           <li class="list-group-item">
+             <input class="form-check-input me-1" type="radio" value="1st Cuneiform to calcaneus, bilateral (lumbar)" id="firstCuneiform" name="area">
+             <label class="form-check-label" for="firstCuneiform">1st Cuneiform to calcaneus, bilateral (lumbar)</label>
+           </li>
+           <li class="list-group-item">
+             <input class="form-check-input me-1" type="radio" value="1st Cuneiform to calcaneus, bilateral (lumbar)" id="firstCuneiform" name="area">
+             <label class="form-check-label" for="firstCuneiform">1st Cuneiform to calcaneus, bilateral (lumbar)</label>
+           </li>
+           <li class="list-group-item">
+               <input class="form-check-input me-1" type="radio" name="area" value="Medial edge of posterior calcaneus, bilateral (sacral and coccyx)" id="medialEdge">
+               <label class="form-check-label" for="medialEdge">Medial edge of posterior calcaneus, bilateral (sacral and coccyx)</label>
+           </li>
+           <li class="list-group-item">
+               <input class="form-check-input me-1" type="radio" name="area" value="Interphalangeal jt of hallux, bilat (jaw)" id="interphalangealJt">
+               <label class="form-check-label" for="interphalangealJt">Interphalangeal jt of hallux, bilat (jaw)</label>
+           </li>
+           <li class="list-group-item">
+               <input class="form-check-input me-1" type="radio" name="area" value="MTP #1-5, bilat (collarbone)" id="mtp1to5">
+               <label class="form-check-label" for="mtp1to5">MTP #1-5, bilat (collarbone)</label>
+           </li>
+           <li class="list-group-item">
+               <input class="form-check-input me-1" type="radio" name="area" value="MTP #5, bilat (shoulder)" id="mtp5">
+               <label class="form-check-label" for="mtp5">MTP #5, bilat (shoulder)</label>
+           </li>
+           <li class="list-group-item">
+               <input class="form-check-input me-1" type="radio" name="area" value="Lat. MTP to tuberosity of 5th metat., bilat. (arm)" id="latMtp">
+               <label class="form-check-label" for="latMtp">Lat. MTP to tuberosity of 5th metat., bilat. (arm)</label>
+           </li>
+           <li class="list-group-item">
+               <input class="form-check-input me-1" type="radio" name="area" value="Lat. tuberosity of 5th metat., bilat. (knee/elbow)" id="latTuberosityCalcaneofibular">
+               <label class="form-check-label" for="latTuberosityCalcaneofibular">Lat. tuberosity of 5th metat., bilat. (knee/elbow)</label>
+           </li>
+           <li class="list-group-item">
+               <input class="form-check-input me-1" type="radio" name="area" value="Lat. tuberosity of 5th metat to calcaneofibular jt., bilat (knee/leg/hip)" id="latTuberosity">
+               <label class="form-check-label" for="latTuberosity">Lat. tuberosity of 5th metat to calcaneofibular jt., bilat (knee/leg/hip)</label>
+           </li>
+           <li class="list-group-item">
+               <input class="form-check-input me-1" type="radio" name="area" value="Lat. post. calcaneofibular jt., bilat (pelvis/hip)" id="latPostCalcaneofibular">
+               <label class="form-check-label" for="latPostCalcaneofibular">Lat. post. calcaneofibular jt., bilat (pelvis/hip)</label>
+           </li>
+           <li class="list-group-item">
+               <input class="form-check-input me-1" type="radio" name="area" value="Distal phalanges #1-5, bilat (brain)" id="distalPhalanges">
+               <label class="form-check-label" for="distalPhalanges">Distal phalanges #1-5, bilat (brain)</label>
+           </li>
+           <li class="list-group-item">
+               <input class="form-check-input me-1" type="radio" name="area" value="Med. aspect from 1st prox. phalanx to post. calcaneus, bilat. (spinal cord)" id="medAspect">
+               <label class="form-check-label" for="medAspect">Med. aspect from 1st prox. phalanx to post. calcaneus, bilat. (spinal cord)</label>
+           </li>
+         </ul>
+        </div>
+        <div class="form-group mx-sm-3 mb-2" style="width: 40%;">
+         <label>Temperature</label>
+         <ul class="list-group" id="temperature">
+           <li class="list-group-item">
+               <input class="form-check-input me-1" type="radio" name="temperature" value="normal temperature" id="normal-temperature">
+               <label class="form-check-label" for="normal-temperature">Normal temperature</label>
+           </li>
+           <li class="list-group-item">
+               <input class="form-check-input me-1" type="radio" name="temperature" value="cool to touch" id="cool-to-touch">
+               <label class="form-check-label" for="cool-to-touch">Cool to touch</label>
+           </li>
+           <li class="list-group-item">
+               <input class="form-check-input me-1" type="radio" name="temperature" value="hot to touch" id="hot-to-touch">
+               <label class="form-check-label" for="hot-to-touch">Hot to touch</label>
+           </li>
+         </ul>
+        </div>
+        <div class="form-group mx-sm-3 mb-2" style="width: 40%;">
+         <label>Hydration</label>
+         <ul class="list-group" id="hydration">
+             <li class="list-group-item">
+                 <input class="form-check-input me-1" type="radio" name="hydration" value="normal hydration" id="normal-hydration">
+                 <label class="form-check-label" for="normal-hydration">Normal hydration</label>
+             </li>
+             <li class="list-group-item">
+                 <input class="form-check-input me-1" type="radio" name="hydration" value="dryness" id="dryness">
+                 <label class="form-check-label" for="dryness">Dryness</label>
+             </li>
+             <li class="list-group-item">
+                 <input class="form-check-input me-1" type="radio" name="hydration" value="damp or clammy tissue" id="damp-clammy-tissue">
+                 <label class="form-check-label" for="damp-clammy-tissue">Damp or clammy tissue</label>
+             </li>
+             <li class="list-group-item">
+                 <input class="form-check-input me-1" type="radio" name="hydration" value="sweatyness" id="sweatyness">
+                 <label class="form-check-label" for="sweatyness">Sweatyness</label>
+             </li>
+             <li class="list-group-item">
+                 <input class="form-check-input me-1" type="radio" name="hydration" value="profusely sweatyness" id="profusely-sweatyness">
+                 <label class="form-check-label" for="profusely-sweatyness">Profusely sweatyness</label>
+             </li>
+             <li class="list-group-item">
+                 <input class="form-check-input me-1" type="radio" name="hydration" value="boggyness" id="boggyness">
+                 <label class="form-check-label" for="boggyness">Boggyness</label>
+             </li>
+             <li class="list-group-item">
+                 <input class="form-check-input me-1" type="radio" name="hydration" value="congestion" id="congestion">
+                 <label class="form-check-label" for="congestion">Congestion</label>
+             </li>
+             <li class="list-group-item">
+                 <input class="form-check-input me-1" type="radio" name="hydration" value="spongyness" id="spongyness">
+                 <label class="form-check-label" for="spongyness">Spongyness</label>
+             </li>
+         </ul>
+        </div>
+        <div class="form-group mx-sm-3 mb-2" style="width: 40%;">
+         <label>Color</label>
+         <ul class="list-group" id="color">
+             <li class="list-group-item">
+                 <input class="form-check-input me-1" type="radio" name="color" value="normal color" id="normal-color">
+                 <label class="form-check-label" for="normal-color">Normal color</label>
+             </li>
+             <li class="list-group-item">
+                 <input class="form-check-input me-1" type="radio" name="color" value="Paleness" id="paleness">
+                 <label class="form-check-label" for="paleness">Paleness</label>
+             </li>
+             <li class="list-group-item">
+                 <input class="form-check-input me-1" type="radio" name="color" value="Redness (erythematous)" id="redness-erythematous">
+                 <label class="form-check-label" for="redness-erythematous">Redness (erythematous)</label>
+             </li>
+             <li class="list-group-item">
+                 <input class="form-check-input me-1" type="radio" name="color" value="Blotchy" id="blotchy">
+                 <label class="form-check-label" for="blotchy">Blotchy</label>
+             </li>
+         </ul>
+        </div>
+        <div class="form-group mx-sm-3 mb-2" style="width: 40%;">
+         <label>Tissue Tone</label>
+         <ul class="list-group" id="tissueTone">
+             <li class="list-group-item">
+                 <input class="form-check-input me-1" type="radio" name="tissue-tone" value="normal tissue tone" id="normal-tissue-tone">
+                 <label class="form-check-label" for="normal-tissue-tone">Normal tissue tone</label>
+             </li>
+             <li class="list-group-item">
+                 <input class="form-check-input me-1" type="radio" name="tissue-tone" value="resistant tissue tone" id="resistant-tissue-tone">
+                 <label class="form-check-label" for="resistant-tissue-tone">Resistant tissue tone</label>
+             </li>
+             <li class="list-group-item">
+                 <input class="form-check-input me-1" type="radio" name="tissue-tone" value="firm tissue tone" id="firm-tissue-tone">
+                 <label class="form-check-label" for="firm-tissue-tone">Firm tissue tone</label>
+             </li>
+             <li class="list-group-item">
+                 <input class="form-check-input me-1" type="radio" name="tissue-tone" value="stringy/ropy tissue tone" id="stringy-ropy-tissue-tone">
+                 <label class="form-check-label" for="stringy-ropy-tissue-tone">Stringy/ropy tissue tone</label>
+             </li>
+             <li class="list-group-item">
+                 <input class="form-check-input me-1" type="radio" name="tissue-tone" value="contracted tissue tone" id="contracted-tissue-tone">
+                 <label class="form-check-label" for="contracted-tissue-tone">Contracted tissue tone</label>
+             </li>
+             <li class="list-group-item">
+                 <input class="form-check-input me-1" type="radio" name="tissue-tone" value="relaxed tissue tone" id="relaxed-tissue-tone">
+                 <label class="form-check-label" for="relaxed-tissue-tone">Relaxed tissue tone</label>
+             </li>
+             <li class="list-group-item">
+                 <input class="form-check-input me-1" type="radio" name="tissue-tone" value="flaccid tissue tone" id="flaccid-tissue-tone">
+                 <label class="form-check-label" for="flaccid-tissue-tone">Flaccid tissue tone</label>
+             </li>
+             <li class="list-group-item">
+                 <input class="form-check-input me-1" type="radio" name="tissue-tone" value="nodular tissue tone" id="nodular-tissue-tone">
+                 <label class="form-check-label" for="nodular-tissue-tone">Nodular tissue tone</label>
+             </li>
+         </ul>
+      </div>
+      <div class="form-group mx-sm-3 mb-2">
+        <button type="button" class="btn btn-secondary" onclick="removeCongestionArea(this)">Remove</button><hr>
+      </div>
+     `;
+     congestionAreas.appendChild(newArea);
+ }
+
+ function removeCongestionArea(button) {
+     button.parentElement.parentElement.remove();
+ }
+
+ function generateSoapNote() {
+     const clientName = document.getElementById('clientName').value;
+     const date = document.getElementById('date').value;
+     const reflexologist = document.getElementById('reflexologist').value;
+     const chiefComplaint = document.getElementById('chiefComplaint').value;
+     const healthHistory = document.getElementById('healthHistory').value;
+     const observation = document.getElementById('observation').value;
+     const sessionType = document.getElementById('sessionType').value;
+     const areasOfEmphasis = document.getElementById('areasOfEmphasis').value;
+     const clientResponse = document.getElementById('clientResponse').value;
+     const recommendations = document.getElementById('recommendations').value;
+     const homeCare = document.getElementById('homeCare').value;
+     const followUp = document.getElementById('followUp').value;
+     const bones = document.getElementById('bones')?.querySelector('input[type="radio"]:checked')?.value ?
+       document.getElementById('bones').querySelector('input[type="radio"]:checked').value :
+       '';
+
+     let soapNote = `SOAP Note\n\nClient Name: ${clientName}\nDate: ${date}\nReflexologist: ${reflexologist}\n\n`;
+     soapNote += `Subjective:\nChief Complaint: ${chiefComplaint}\nHealth History: ${healthHistory}\n\n`;
+     soapNote += `Objective:\nObservation: ${observation}\nBones: ${bones}\n\n`;
+
+     // Hydration
+     const hydration = document.getElementById('hydration')?.querySelector('input[type="radio"]:checked')?.value ?
+       document.getElementById('hydration').querySelector('input[type="radio"]:checked').value :
+       '';
+     if (hydration && hydration !== "normal hydration") {
+         soapNote += `Hydration: ${hydration}\n`;
+     }
+
+     // Color
+     const color = document.getElementById('color')?.querySelector('input[type="radio"]:checked')?.value ?
+       document.getElementById('color').querySelector('input[type="radio"]:checked').value :
+       '';
+     if (color && color !== "normal color") {
+         soapNote += `Color: ${color}\n`;
+     }
+
+     // Tissue Tone
+     const tissueTone = document.getElementById('tissueTone')?.querySelector('input[type="radio"]:checked')?.value ?
+       document.getElementById('toneTissue').querySelector('input[type="radio"]:checked').value :
+       '';
+     if (tissueTone && tissueTone !== "normal tissue tone") {
+         soapNote += `Tissue Tone: ${tissueTone}\n`;
+     }
+
+     // Temperature
+     const temperature = document.getElementById('temperature')?.querySelector('input[type="radio"]:checked')?.value ?
+       document.getElementById('temperature').querySelector('input[type="radio"]:checked').value :
+       '';
+     if (temperature && temperature !== "normal temperature") {
+         soapNote += `Temperature: ${temperature}\n`;
+     }
+
+     soapNote += `Assessment:\nType of Session: ${sessionType}\n`;
+
+     if (document.getElementById('includeAreasOfEmphasis').checked) {
+         soapNote += `Areas of Emphasis: ${areasOfEmphasis}\n`;
+     }
+     if (document.getElementById('includeClientResponse').checked) {
+         soapNote += `Client Response: ${clientResponse}\n`;
+     }
+
+     soapNote += `Plan:\n`;
+
+     if (document.getElementById('includeRecommendations').checked) {
+         soapNote += `Recommendations: ${recommendations}\n`;
+     }
+     if (document.getElementById('includeHomeCare').checked) {
+         soapNote += `Home Care: ${homeCare}\n`;
+     }
+
+     soapNote += `Follow-up: ${followUp}\n\n`;
+     soapNote += `Reflexologist Signature: ${reflexologist}\nDate: ${date}`;
+
+     document.getElementById('soapNote').innerText = soapNote;
+     document.getElementById('copyButton').style.display = 'block';
+ }
+
+ function copyToClipboard() {
+     const soapNote = document.getElementById('soapNote').innerText;
+     navigator.clipboard.writeText(soapNote).then(() => {
+         alert('SOAP Note copied to clipboard!');
+     });
+ }
+ </script>
+
+</body>
+</html>
