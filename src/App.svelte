@@ -1,5 +1,7 @@
 <script>import "./app.css";
 import {
+    Accordion,
+    AccordionItem,
     Button,
     Input,
     Label,
@@ -28,7 +30,6 @@ let temperatureItems = ['Normal temperature', 'Cool to touch', 'Hot to touch'];
 let hydrationItems = ['Normal hydration', 'Dryness', 'Damp or clammy tissue', 'Sweatyness', 'Profusely sweatyness', 'Boggyness', 'Congestion', 'Sponginess'];
 let colorItems = ['Normal color', 'Paleness', 'Redness (erythematous)', 'Blotchy'];
 let tissueToneItems = ['Normal tissue tone', 'Resistant tissue tone', 'Firm tissue tone', 'Stringy/ropy tissue tone', 'Contracted tissue tone', 'Relaxed tissue tone', 'Flaccid tissue tone', 'Nodular tissue tone'];
-let showModal = false;
 
 function addCongestionAreas() {
     congAreas = [...congAreas, {
@@ -59,47 +60,47 @@ async function generate() {
     const recommendations = document.getElementById('recommendations').value;
     const homeCare = document.getElementById('homeCare').value;
     const followUp = document.getElementById('followUp').value;
-    // const bones = document.getElementById('bones')?.querySelector('input[type="radio"]:checked')?.value ?
-    //   document.getElementById('bones').querySelector('input[type="radio"]:checked').value : "";
 
     let soapNote = `SOAP Note\n\nClient Name: ${clientName}\nDate: ${date}\nReflexologist: ${reflexologist}\n\n`;
-    soapNote += `Subjective:\nChief Complaint: ${chiefComplaint}\nHealth History: ${healthHistory}\n\n`;
-    soapNote += `Objective:\nObservation: ${observation}\n\n` //Bones: ${bones}\n\n`;
+    soapNote += `Subjective:\n`;
+    soapNote += chiefComplaint ? `Chief Complaint: ${chiefComplaint}\n` : '';
+    soapNote += healthHistory ? `Health History: ${healthHistory}\n\n` : '\n';
+    soapNote += `Objective:\n`;
+    soapNote += observation ? `Observation: ${observation}\n\n` : '\n';
 
     for (let i = 0; i < congAreas.length; i++) {
-        if (congAreas[i].hydration !== "normal hydration") {
-            soapNote += `Hydration: ${congAreas[i].hydration}\n`;
+        soapNote += `Congestion Area ${i + 1}:\n`;
+        if (congAreas[i].foot !== null) {
+            soapNote += `Foot: ${congAreas[i].foot}\n`;
         }
-        if (congAreas[i].color !== "normal color") {
-            soapNote += `Color: ${congAreas[i].color}\n`;
+        if (congAreas[i].anatomicalArea !== null) {
+            soapNote += `Anatomical Area: ${congAreas[i].anatomicalArea}\n`;
         }
-        if (congAreas[i].tissueTone !== "normal tissue tone") {
-            soapNote += `Tissue Tone: ${congAreas[i].tissueTone}\n`;
-        }
-        if (congAreas[i].temperature !== "normal temperature") {
+        if (congAreas[i].temperature !== null && congAreas[i].temperature !== "normal temperature") {
             soapNote += `Temperature: ${congAreas[i].temperature}\n`;
         }
+        if (congAreas[i].hydration !== null && congAreas[i].hydration !== "normal hydration") {
+            soapNote += `Hydration: ${congAreas[i].hydration}\n`;
+        }
+        if (congAreas[i].color !== null && congAreas[i].color !== "normal color") {
+            soapNote += `Color: ${congAreas[i].color}\n`;
+        }
+        if (congAreas[i].tissueTone !== null && congAreas[i].tissueTone !== "normal tissue tone") {
+            soapNote += `Tissue Tone: ${congAreas[i].tissueTone}\n`;
+        }
+        soapNote += '\n';
     }
 
-    soapNote += `\nAssessment:\nType of Session: ${sessionType}\n`;
-
-    if (areasOfEmphasis) {
-        soapNote += `Areas of Emphasis: ${areasOfEmphasis}\n`;
-    }
-    if (clientResponse) {
-        soapNote += `Client Response: ${clientResponse}\n`;
-    }
+    soapNote += `Assessment:\n`;
+    soapNote += sessionType ? `Type of Session: ${sessionType}\n` : '';
+    soapNote += areasOfEmphasis ? `Areas of Emphasis: ${areasOfEmphasis}\n` : '';
+    soapNote += clientResponse ? `Client Response: ${clientResponse}\n\n` : '\n';
 
     soapNote += `Plan:\n`;
+    soapNote += recommendations ? `Recommendations: ${recommendations}\n` : '';
+    soapNote += homeCare ? `Home Care: ${homeCare}\n` : '';
+    soapNote += followUp ? `Follow-up: ${followUp}\n\n` : '\n';
 
-    if (recommendations) {
-        soapNote += `Recommendations: ${recommendations}\n`;
-    }
-    if (homeCare) {
-        soapNote += `Home Care: ${homeCare}\n`;
-    }
-
-    soapNote += `Follow-up: ${followUp}\n\n`;
     soapNote += `Reflexologist Signature: ${reflexologist}\nDate: ${date}`;
 
     await navigator.clipboard.writeText(soapNote);
@@ -111,26 +112,27 @@ async function generate() {
 <div class="relative px-8">
     <Navbar class="px-2 sm:px-4 py-2.5 fixed w-full z-20 top-0 start-0 border-b">
         <NavBrand href="/">
-      <span class="self-center whitespace-nowrap text-xl font-semibold dark:text-white">
+      <span class="self-center whitespace-nowrap text-xl font-semibold">
         SOAP Note Generator
       </span>
         </NavBrand>
         <NavHamburger/>
         <NavUl>
-            <NavLi href="#basicInfo" active={true}>Basic Info</NavLi>
+            <NavLi href="#subjective" active={true}>Subjective</NavLi>
             <NavLi href="#objective">Objective</NavLi>
             <NavLi href="#congestionAreas">Congestion Areas</NavLi>
-            <NavLi href="#conclusions">Conclusions</NavLi>
+            <NavLi href="#assessment">Assessment</NavLi>
+            <NavLi href="#plan">Plan</NavLi>
         </NavUl>
     </Navbar>
 </div>
 
 <main class="pt-[100px]">
-    <form>
-        <h1 id="basicInfo">Basic Info</h1>
+    <form on:submit={generate}>
+        <h1 id="subjective">Subjective</h1>
         <div class="grid gap-6 mb-6 md:grid-cols-2">
             <div>
-                <Label for="clientName" class="mb-2 dark:text-white">Client Name</Label>
+                <Label for="clientName" class="mb-2">Client Name</Label>
                 <Input type="text" id="clientName" required/>
             </div>
             <div>
@@ -148,12 +150,12 @@ async function generate() {
         </div>
         <div class="grid gap-6 mb-6 md:grid-cols-2">
             <div>
-                <Label for="chiefComplaint" class="mb-2 dark:text-white">Chief Complaint/Reason for Visit</Label>
+                <Label for="chiefComplaint" class="mb-2">Chief Complaint/Reason for Visit</Label>
                 <Textarea id="chiefComplaint" rows="8"
                           placeholder="i.e., Client reports experiencing increased stress and anxiety."/>
             </div>
             <div>
-                <Label for="healthHistory" class="mb-2 dark:text-white">Health History</Label>
+                <Label for="healthHistory" class="mb-2">Health History</Label>
                 <Textarea id="healthHistory" rows="8"
                           placeholder="i.e., History of generalized anxiety disorder, hypertension."/>
             </div>
@@ -162,7 +164,7 @@ async function generate() {
         <h1 id="objective">Objective</h1>
         <div class="grid gap-6 mb-6 md:grid-cols-1">
             <div>
-                <Label for="observation" class="mb-2 dark:text-white">Observation</Label>
+                <Label for="observation" class="mb-2">Observation</Label>
                 <Textarea id="observation" rows="4"
                           placeholder="i.e., Client appears relaxed, skin on feet is intact."/>
             </div>
@@ -172,22 +174,24 @@ async function generate() {
         <div>
             {#each congAreas as field, index}
                 <div class="border p-3 rounded">
-                    <h2>Foot</h2>
-                    <Listgroup>
-                        {#each footItems as option}
-                            <ListgroupItem>
-                                <label class="flex items-center gap-2">
-                                    <input type="radio" name="foot-{field.id}" value={option} bind:group={field.foot}
-                                           class="w-4 h-4"/>
-                                    {option}
-                                </label>
-                            </ListgroupItem>
-                        {/each}
-                    </Listgroup>
-                    <br>
-
-                    <h2>Anatomical Areas</h2>
-                    <Listgroup>
+                    <Accordion flush>
+                        <AccordionItem>
+                            <span slot="header">Foot</span>
+                            <Listgroup>
+                            {#each footItems as option}
+                                <ListgroupItem>
+                                    <label class="flex items-center gap-2">
+                                        <input type="radio" name="foot-{field.id}" value={option} bind:group={field.foot}
+                                               class="w-4 h-4"/>
+                                        {option}
+                                    </label>
+                                </ListgroupItem>
+                            {/each}
+                        </Listgroup>
+                        </AccordionItem>
+                        <AccordionItem>
+                            <span slot="header">Anatomical Areas</span>
+                            <Listgroup>
                         {#each anatomicalAreaItems as option}
                             <ListgroupItem>
                                 <label class="flex items-center gap-2">
@@ -198,24 +202,24 @@ async function generate() {
                             </ListgroupItem>
                         {/each}
                     </Listgroup>
-                    <br>
-
-                    <h2>Temperature</h2>
-                    <Listgroup>
-                        {#each temperatureItems as option}
-                            <ListgroupItem>
-                                <label class="flex items-center gap-2">
-                                    <input type="radio" name="temperature-{field.id}" value={option}
-                                           bind:group={field.temperature} class="w-4 h-4"/>
-                                    {option}
-                                </label>
-                            </ListgroupItem>
-                        {/each}
-                    </Listgroup>
-                    <br>
-
-                    <h2>Hydration</h2>
-                    <Listgroup>
+                        </AccordionItem>
+                        <AccordionItem>
+                            <span slot="header">Temperature</span>
+                            <Listgroup>
+                                {#each temperatureItems as option}
+                                    <ListgroupItem>
+                                        <label class="flex items-center gap-2">
+                                            <input type="radio" name="temperature-{field.id}" value={option}
+                                                   bind:group={field.temperature} class="w-4 h-4"/>
+                                            {option}
+                                        </label>
+                                    </ListgroupItem>
+                                {/each}
+                            </Listgroup>
+                        </AccordionItem>
+                        <AccordionItem>
+                            <span slot="header">Hydration</span>
+                            <Listgroup>
                         {#each hydrationItems as option}
                             <ListgroupItem>
                                 <label class="flex items-center gap-2">
@@ -226,10 +230,10 @@ async function generate() {
                             </ListgroupItem>
                         {/each}
                     </Listgroup>
-                    <br>
-
-                    <h2>Color</h2>
-                    <Listgroup>
+                        </AccordionItem>
+                        <AccordionItem>
+                            <span slot="header">Color</span>
+                            <Listgroup>
                         {#each colorItems as option}
                             <ListgroupItem>
                                 <label class="flex items-center gap-2">
@@ -240,10 +244,10 @@ async function generate() {
                             </ListgroupItem>
                         {/each}
                     </Listgroup>
-                    <br>
-
-                    <h2>Tissue Tone</h2>
-                    <Listgroup>
+                        </AccordionItem>
+                        <AccordionItem>
+                            <span slot="header">Tissue Tone</span>
+                            <Listgroup>
                         {#each tissueToneItems as option}
                             <ListgroupItem>
                                 <label class="flex items-center gap-2">
@@ -254,7 +258,8 @@ async function generate() {
                             </ListgroupItem>
                         {/each}
                     </Listgroup>
-
+                        </AccordionItem>
+                    </Accordion>
                     <button
                             type="button"
                             on:click={() => removeField(index)}
@@ -273,38 +278,41 @@ async function generate() {
         </div>
 
 
-        <h1 id="conclusions">Conclusions</h1>
+        <h1 id="assessment">Assessment</h1>
         <div class="grid gap-6 mb-6 md:grid-cols-1">
             <div>
-                <Label for="areasOfEmphasis" class="mb-2 dark:text-white">Areas of Emphasis</Label>
+                <Label for="areasOfEmphasis" class="mb-2">Areas of Emphasis</Label>
                 <Textarea id="areasOfEmphasis" rows="4"
                           placeholder="i.e., Focused on liver, kidney, and endocrine reflexes."/>
             </div>
             <div>
-                <Label for="clientResponse" class="mb-2 dark:text-white">Client Response</Label>
+                <Label for="clientResponse" class="mb-2">Client Response</Label>
                 <Textarea id="clientResponse" rows="4"
                           placeholder="i.e., Client reported feeling calmer and more relaxed."/>
             </div>
+        </div>
+        <h1 id="plan">Plan</h1>
+        <div class="grid gap-6 mb-6 md:grid-cols-1">
             <div>
-                <Label for="recommendations" class="mb-2 dark:text-white">Recommendations</Label>
+                <Label for="recommendations" class="mb-2">Recommendations</Label>
                 <Textarea id="recommendations" rows="4"
                           placeholder="i.e., Advised client to drink plenty of water and practice deep breathing exercises."/>
             </div>
             <div>
-                <Label for="homeCare" class="mb-2 dark:text-white">Home Care</Label>
+                <Label for="homeCare" class="mb-2">Home Care</Label>
                 <Textarea id="homeCare" rows="4"
                           placeholder="i.e., Instructions for self-reflexology techniques provided."/>
             </div>
             <div>
-                <Label for="followUp" class="mb-2 dark:text-white">Follow-up</Label>
+                <Label for="followUp" class="mb-2">Follow-up</Label>
                 <Input type="text" id="followUp" placeholder="i.e., Schedule next appointment in 2 weeks."/>
             </div>
         </div>
+        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded mt-2">
+            Submit
+        </button>
     </form>
 
-    <button on:click={generate} class="bg-blue-500 text-white px-4 py-2 rounded mt-2">
-        Submit
-    </button>
 </main>
 
 
