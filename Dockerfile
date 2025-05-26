@@ -7,7 +7,7 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Serve with Node
-FROM node:18
+FROM node:20
 WORKDIR /app
 
 # Copy all files from builder
