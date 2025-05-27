@@ -74,15 +74,17 @@
       window.location.href = `${API_URL}/auth/google`;
     }
   
-    let congAreas = [{
-      id: 1,
-      foot: null,
-      anatomicalArea: null,
-      temperature: null,
-      hydration: null,
-      color: null,
-      tissueTone: null
-    }];
+let congAreas = [{
+  id: 1,
+  foot: null,
+  anatomicalArea: null,
+  temperature: null,
+  hydration: null,
+  color: null,
+  tissueTone: null,
+  sensitivity: null     // ✅ ADD THIS LINE
+}];
+
   
     let footItems = ['Right foot', 'Left foot', 'Bilateral'];
     // let anatomicalAreaItems = ['Proximal hallux, bilat', '1st Metatarsal, bilateral', '1st Cuneiform to calcaneus, bilateral', 'Medial edge of posterior calcaneus, bilateral', 'Interphalangeal jt of hallux, bilat (jaw)', 'MTP #1-5, bilat (collarbone)', 'MTP #5, bilat (shoulder)', 'Lat. MTP to tuberosity of 5th metat., bilat. (arm)', 'Lat. tuberosity of 5th metat., bilat. (knee/elbow)', 'Lat. tuberosity of 5th metat to calcaneofibular jt., bilat (knee/leg/hip)', 'Lat. post. calcaneofibular jt., bilat (pelvis/hip)', 'Distal phalanges #1-5, bilat (brain)', 'Med. aspect from 1st prox. phalanx to post. calcaneus, bilat. (spinal cord)'];
@@ -173,16 +175,18 @@ let anatomicalAreasBySystem = {
 
 
     function addCongestionAreas() {
-      congAreas = [...congAreas, {
-        id: congAreas.length + 1,
-        foot: null,
-        anatomicalArea: null,
-        temperature: null,
-        hydration: null,
-        color: null,
-        tissueTone: null
-      }];
-    }
+  congAreas = [...congAreas, {
+    id: congAreas.length + 1,
+    foot: null,
+    anatomicalArea: null,
+    temperature: null,
+    hydration: null,
+    color: null,
+    tissueTone: null,
+    sensitivity: null   // ✅ ADD THIS
+  }];
+}
+
   
     function removeField(index) {
       congAreas = congAreas.filter((_, i) => i !== index);
@@ -271,20 +275,21 @@ let anatomicalAreasBySystem = {
       soapNote += `Objective:\n`;
       soapNote += formData.observation ? `Observation: ${formData.observation}\n\n` : '\n';
   
-      for (let i = 0; i < congAreas.length; i++) {
-        soapNote += `Congestion Area ${i + 1}:\n`;
-        if (congAreas[i].foot) soapNote += `Foot: ${congAreas[i].foot}\n`;
-        if (congAreas[i].anatomicalArea) {
-  const cleanedArea = congAreas[i].anatomicalArea.replace(/\s*\([^)]*\)/g, '').trim();
-  soapNote += `Anatomical Area: ${cleanedArea}\n`;
+     for (let i = 0; i < congAreas.length; i++) {
+  soapNote += `• ${congAreas[i].foot || ''} ${congAreas[i].anatomicalArea || ''}\n`;
+
+  if (congAreas[i].temperature && congAreas[i].temperature !== 'Normal temperature')
+    soapNote += `   - Temperature: ${congAreas[i].temperature}\n`;
+  if (congAreas[i].hydration && congAreas[i].hydration !== 'Normal hydration')
+    soapNote += `   - Hydration: ${congAreas[i].hydration}\n`;
+  if (congAreas[i].color && congAreas[i].color !== 'Normal color')
+    soapNote += `   - Color: ${congAreas[i].color}\n`;
+  if (congAreas[i].tissueTone && congAreas[i].tissueTone !== 'Normal tissue tone')
+    soapNote += `   - Tissue Tone: ${congAreas[i].tissueTone}\n`;
+  if (congAreas[i].sensitivity && congAreas[i].sensitivity !== 'Normal')
+    soapNote += `   - Sensitivity: ${congAreas[i].sensitivity}\n`;
 }
 
-        if (congAreas[i].temperature && congAreas[i].temperature !== 'Normal temperature') soapNote += `Temperature: ${congAreas[i].temperature}\n`;
-        if (congAreas[i].hydration && congAreas[i].hydration !== 'Normal hydration') soapNote += `Hydration: ${congAreas[i].hydration}\n`;
-        if (congAreas[i].color && congAreas[i].color !== 'Normal color') soapNote += `Color: ${congAreas[i].color}\n`;
-        if (congAreas[i].tissueTone && congAreas[i].tissueTone !== 'Normal tissue tone') soapNote += `Tissue Tone: ${congAreas[i].tissueTone}\n`;
-        soapNote += '\n';
-      }
   
       soapNote += `Action:\n`;
       soapNote += formData.sessionType ? `Type of Session: ${formData.sessionType}\n` : '';
@@ -472,7 +477,27 @@ let anatomicalAreasBySystem = {
                       {/each}
                     </Listgroup>
                   </AccordionItem>
+                   <AccordionItem>
+  <span slot="header">Sensitivity</span>
+  <Listgroup>
+    {#each ['Normal', 'Tender', 'Sensitive', 'Very Sensitive'] as option}
+      <ListgroupItem>
+        <label class="flex items-center gap-2">
+          <input
+            type="radio"
+            name="sensitivity-{field.id}"
+            value={option}
+            bind:group={field.sensitivity}
+          />
+          {option}
+        </label>
+      </ListgroupItem>
+    {/each}
+  </Listgroup>
+</AccordionItem>
                 </Accordion>
+               
+
     
                 <button type="button" on:click={() => removeField(index)} class="bg-red-500 text-white px-2 py-1 rounded mt-2">
                   ✕ Remove
