@@ -1,7 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///responses.db"
 app.config["SECRET_KEY"] = "your_secret_key"
 db = SQLAlchemy(app)
@@ -20,10 +22,15 @@ class Response(db.Model):
 def index():
     return render_template("index.html")
 
+# ✅ Add your API route here
+@app.route("/api/user", methods=["GET"])
+def get_user():
+    return jsonify({
+        "name": "Test User",
+        "email": "test@example.com"
+    })
 
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
-
-    # test new branch
+    app.run(debug=True, port=3000)
