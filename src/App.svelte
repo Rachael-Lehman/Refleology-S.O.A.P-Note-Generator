@@ -46,7 +46,7 @@
     onMount(async () => {
       try {
         const API_URL = 'http://localhost:3000';
-        const res = await fetch(`${API_URL}/api/user`, {
+        const res = await fetch(`${API_URL}/api/user`, { 
           credentials: 'include'
         });
         
@@ -189,7 +189,12 @@ let anatomicalAreasBySystem = {
 
   
     function removeField(index) {
-      congAreas = congAreas.filter((_, i) => i !== index);
+      if(congAreas.length > 1){
+        congAreas = congAreas.filter((_, i) => i !== index);
+      }
+      else{
+        // add "cant remove" message
+      }
     }
   
     async function uploadNote(noteContent) {
@@ -200,7 +205,7 @@ let anatomicalAreasBySystem = {
       try {
         console.log('Attempting to upload note:', noteContent);
         const API_URL = 'http://localhost:3000';
-        const response = await fetch(`${API_URL}/upload-note`, {
+        const response = await fetch(`${API_URL}/api/upload-note`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -237,7 +242,7 @@ let anatomicalAreasBySystem = {
     async function fetchSavedNotes() {
       try {
         const API_URL = 'http://localhost:3000';
-        const res = await fetch(`${API_URL}/list-notes`, {
+        const res = await fetch(`${API_URL}/api/list-notes`, {
           credentials: 'include'
         });
         if (res.ok) {
@@ -402,7 +407,7 @@ let anatomicalAreasBySystem = {
                     {#each Object.entries(anatomicalAreasBySystem) as [system, options]}
   <AccordionItem>
     <span slot="header">{system}</span>
-    {#if !selectedSystemByField[field.id] || selectedSystemByField[field.id] === system}
+ <!--   {#if !selectedSystemByField[field.id] || selectedSystemByField[field.id] === system}    this line is makeing a bug, cant change to a different system after clicking one -->
       <Listgroup>
         {#each options as option}
           <ListgroupItem>
@@ -411,15 +416,14 @@ let anatomicalAreasBySystem = {
                 type="radio"
                 name="anatomicalArea-{field.id}"
                 value={option}
-                bind:group={field.anatomicalArea}
-                on:change={() => selectedSystemByField[field.id] = system}
-              />
+                bind:group={field.anatomicalArea}     
+              />   <!-- Removed on:change={() => selectedSystemByField[field.id] = system} intentionally -->                                                    
               {option}
             </label>
           </ListgroupItem>
         {/each}
       </Listgroup>
-    {/if}
+     <!-- {/if} -->
   </AccordionItem>
 {/each}
 
@@ -502,7 +506,7 @@ let anatomicalAreasBySystem = {
                 <button type="button" on:click={() => removeField(index)} class="bg-red-500 text-white px-2 py-1 rounded mt-2">
                   ✕ Remove
                 </button>
-              </div>
+              </div>    <!-- if user removes the only field there is no way to get it back -->
             {/each}
     
             <Button on:click={addCongestionAreas} class="bg-blue-500 text-white px-4 py-2 rounded">
@@ -537,9 +541,10 @@ let anatomicalAreasBySystem = {
           </div>
         </SectionHeader>
     
-        <div class="mt-6">
+        <div class="mt-6">  <!--redundant on:click={generate}, the form already submits to generate plus on click skips over the forms required fields -->
+           <!-- Removed on:click from button intentionally -->
           <Button 
-            on:click={generate}
+            type="submit" 
             disabled={isUploading}
             class="relative"
           >
@@ -598,7 +603,7 @@ let anatomicalAreasBySystem = {
       {/each}
     </div>
   {:else}
-    <p class="text-gray-500">No saved notes yet</p>
+    <p class="text-gray-500">No saved notes yet</p> 
   {/if}
 </SectionHeader>
 

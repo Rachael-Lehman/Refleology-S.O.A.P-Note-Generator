@@ -1,11 +1,11 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount } from "svelte";
   let user = null;
 
   // Fetch user session
   onMount(async () => {
-    const res = await fetch('http://localhost:3000/api/user', {
-      credentials: 'include'
+    const res = await fetch("http://localhost:3000/api/user", {
+      credentials: "include",
     });
     if (res.ok) {
       user = await res.json();
@@ -14,18 +14,17 @@
 
   // ✅ Logout function lives here
   async function logout() {
-  await fetch('http://localhost:3000/api/logout', {
-    method: 'POST',
-    credentials: 'include'
-  });
+    await fetch("http://localhost:3000/api/logout", {
+      method: "POST",
+      credentials: "include",
+    });
 
-  user = null;
-  window.location.reload(); // Force re-check from server
-}
-
+    user = null;
+    window.location.reload(); // Force re-check from server
+  }
 
   function loginWithGoogle() {
-    window.location.href = 'http://localhost:3000/auth/google';
+    window.location.href = "http://localhost:3000/auth/google";
   }
 </script>
 
@@ -40,11 +39,17 @@
       <!-- Navigation Links -->
       {#if user}
         <div class="hidden md:flex space-x-8">
-          <a href="#subjective" class="text-gray-700 hover:text-blue-600">Subjective</a>
-          <a href="#objective" class="text-gray-700 hover:text-blue-600">Objective</a>
+          <a href="#subjective" class="text-gray-700 hover:text-blue-600"
+            >Subjective</a
+          >
+          <a href="#objective" class="text-gray-700 hover:text-blue-600"
+            >Objective</a
+          >
           <a href="#action" class="text-gray-700 hover:text-blue-600">Action</a>
           <a href="#plan" class="text-gray-700 hover:text-blue-600">Plan</a>
-          <a href="#saved-notes" class="text-gray-700 hover:text-blue-600">Existing Notes</a>
+          <a href="#saved-notes" class="text-gray-700 hover:text-blue-600"
+            >Existing Notes</a
+          >
         </div>
       {/if}
 
@@ -52,14 +57,14 @@
       <div class="flex items-center gap-4">
         {#if user}
           <span class="text-sm text-gray-700">Welcome, {user.displayName}</span>
-          <button 
+          <button
             on:click={logout}
             class="bg-red-500 text-white px-4 py-2 rounded-md text-sm hover:bg-red-600"
           >
             Sign Out
           </button>
         {:else}
-          <button 
+          <button
             on:click={loginWithGoogle}
             class="bg-blue-500 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-600"
           >

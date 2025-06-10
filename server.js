@@ -30,7 +30,7 @@ const s3 = new S3Client({
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,     // or use IAM role if on ECS
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-     
+
   }
 });
 async function checkS3Bucket() {
@@ -49,7 +49,7 @@ async function checkS3Bucket() {
           {
             AllowedHeaders: ['*'],
             AllowedMethods: ['GET', 'PUT', 'POST', 'DELETE'],
-            AllowedOrigins: ['http://localhost:3000', 'http://localhost:5000','http://localhost:5173'],
+            AllowedOrigins: ['http://localhost:3000', 'http://localhost:5000', 'http://localhost:5173'],
             ExposeHeaders: ['ETag']
           }
         ]
@@ -146,7 +146,7 @@ app.get('/api/user', (req, res) => {
 
 console.log("📌 Registering /api/logout route");
 app.post('/api/logout', (req, res) => {
-  req.logout(function(err) {
+  req.logout(function (err) {
     if (err) return res.status(500).send('Logout error');
     req.session.destroy(() => {
       res.clearCookie('connect.sid', { path: '/' });
@@ -162,7 +162,7 @@ import { Readable } from 'stream';
 app.post('/upload-note', async (req, res) => {
   try {
     const { note, clientName, date } = req.body;
-    
+
     if (!note || !clientName || !date) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
@@ -179,7 +179,7 @@ app.post('/upload-note', async (req, res) => {
     const doc = new PDFDocument();
     let buffers = [];
     doc.on('data', buffers.push.bind(buffers));
-    
+
     // Add content to PDF
     doc.fontSize(16).text('SOAP Note', { align: 'center' });
     doc.moveDown();

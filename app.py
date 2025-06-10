@@ -23,12 +23,19 @@ def index():
     return render_template("index.html")
 
 # ✅ Add your API route here
-@app.route("/api/user", methods=["GET"])
+@app.route("/api/user", methods=["GET", "POST"])
 def get_user():
     return jsonify({
-        "name": "Test User",
+        "displayName": "Test User",
         "email": "test@example.com"
     })
+
+#@app.route("/api/list-notes", methods=["GET, "POST"])
+#def get_notes():
+#    return jsonify({
+#        "name": "Test patient",
+#        "note": "test fiest flient note"
+#    })
 
 if __name__ == "__main__":
     with app.app_context():

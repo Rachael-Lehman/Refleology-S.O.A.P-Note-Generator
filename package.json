@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start-server": "node server.js"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
@@ -17,9 +18,17 @@
     "vite": "^6.1.0"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.826.0",
     "@popperjs/core": "^2.11.8",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "express-session": "^1.18.1",
     "flowbite": "^3.1.2",
     "flowbite-svelte": "^0.48.4",
+    "passport": "^0.7.0",
+    "passport-google-oauth": "^2.0.0",
+    "pdfkit": "^0.17.1",
     "tailwind-merge": "^3.0.2"
   }
 }
