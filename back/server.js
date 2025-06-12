@@ -2,19 +2,25 @@ import express from 'express';
 import session from 'express-session';
 import passport from 'passport';
 import dotenv from 'dotenv';
+import jwt from 'jsonwebtoken';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import bodyParser from 'body-parser';
 import { ListObjectsV2Command } from "@aws-sdk/client-s3";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, PutCommand, DeleteCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import {
+  S3Client,
   HeadBucketCommand,
   CreateBucketCommand,
-  PutBucketCorsCommand
+  PutBucketCorsCommand,
+  PutObjectCommand,
+  DeleteObjectCommand
 } from '@aws-sdk/client-s3';
+
 
 dotenv.config();
 
@@ -26,13 +32,31 @@ app.use(bodyParser.json());
 console.log('Checking AWS configuration...');
 
 const s3 = new S3Client({
-  region: "us-east-1", // or your region
+  region: "us-east-1",
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,     // or use IAM role if on ECS
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 
   }
 });
+
+console.log('Setting up authentication...')
+
+function requireAuth(req, res, next) {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.split(' ')[1];
+  if (!token) {
+    res.redirect('http://localhost:3000/api/logout');
+  }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    res.redirect('http://localhost:3000/api/logout');
+  }
+}
+
 async function checkS3Bucket() {
   const bucketName = process.env.AWS_BUCKET_NAME;
 
@@ -106,18 +130,20 @@ app.use(cors({
 }));
 
 // =================== Passport Strategy ===================
-console.log("🔐 Configuring Google OAuth strategy", process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET);
+console.log("🔐 Configuring Google OAuth strategy");
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
   callbackURL: 'http://localhost:3000/auth/google/callback' // update for production
 }, (accessToken, refreshToken, profile, done) => {
-
+  const token = jwt.sign(
+    { userId: profile.id, name: profile.displayName, email: profile.emails[0].value },
+    process.env.JWT_SECRET,
+    { expiresIn: '1h' }                      // Optional: expires in 1 hour
+  );
   return done(null, {
-    googleId: profile.id,
+    token,
     name: profile.displayName,
-    email: profile.emails[0].value,
-    photo: profile.photos[0].value,
     accessToken
   });
 }));

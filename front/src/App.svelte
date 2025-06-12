@@ -297,7 +297,9 @@
 
   // Add form field bindings at the top of the script
   let formData = {
-    clientName: "",
+    clientFirstName: "",
+    clientLastName: "",
+    clientDOB: "",
     date: "",
     reflexologist: "",
     chiefComplaint: "",
@@ -331,7 +333,7 @@
       }
     }
 
-    let soapNote = `SOAP Note\n\nClient Name: ${formData.clientName}\nDate: ${formData.date}\nReflexologist: ${formData.reflexologist}\n\n`;
+    let soapNote = `SOAP Note\n\nClient Name: ${formData.clientFirstName} ${formData.clientLastName} DOB: ${formData.clientDOB}\nDate: ${formData.date}\nReflexologist: ${formData.reflexologist}\n\n`;
     soapNote += `Subjective:\nChief Complaint: `;
     soapNote += formData.chiefComplaint
       ? `${formData.chiefComplaint}\n`
@@ -451,8 +453,29 @@
       <SectionHeader id="subjective" title="Subjective">
         <div class="grid gap-6 mb-6 md:grid-cols-2">
           <div>
-            <Label for="clientName">Client Name</Label>
-            <Input id="clientName" bind:value={formData.clientName} required />
+            <Label for="clientfirstName">Client First Name</Label>
+            <Input
+              id="clientfirstName"
+              bind:value={formData.clientFirstName}
+              required
+            />
+          </div>
+          <div>
+            <Label for="clientlastName">Client Last Name</Label>
+            <Input
+              id="clientlastName"
+              bind:value={formData.clientLastName}
+              required
+            />
+          </div>
+          <div>
+            <Label for="clientDOB">Client DOB</Label>
+            <Input
+              type="date"
+              id="clientDOB"
+              bind:value={formData.clientDOB}
+              required
+            />
           </div>
           <div>
             <Label for="date">Date</Label>
