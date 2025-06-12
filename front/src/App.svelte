@@ -75,7 +75,6 @@
   let congAreas = [
     {
       id: 1,
-      foot: null,
       anatomicalArea: null,
       temperature: null,
       hydration: null,
@@ -86,8 +85,6 @@
     },
   ];
 
-  let footItems = ["Right foot", "Left foot", "Bilateral"];
-  // let anatomicalAreaItems = ['Proximal hallux, bilat', '1st Metatarsal, bilateral', '1st Cuneiform to calcaneus, bilateral', 'Medial edge of posterior calcaneus, bilateral', 'Interphalangeal jt of hallux, bilat (jaw)', 'MTP #1-5, bilat (collarbone)', 'MTP #5, bilat (shoulder)', 'Lat. MTP to tuberosity of 5th metat., bilat. (arm)', 'Lat. tuberosity of 5th metat., bilat. (knee/elbow)', 'Lat. tuberosity of 5th metat to calcaneofibular jt., bilat (knee/leg/hip)', 'Lat. post. calcaneofibular jt., bilat (pelvis/hip)', 'Distal phalanges #1-5, bilat (brain)', 'Med. aspect from 1st prox. phalanx to post. calcaneus, bilat. (spinal cord)'];
   let temperatureItems = [
     "Normal temperature",
     "Cool to touch",
@@ -211,6 +208,7 @@
       "Medial aspect of talonavicular joint, bilat (Bladder)",
       "Medial aspect of sustentaculum tali, bilat (Bladder)",
     ],
+    Foot: ["Right foot", "Left foot", "Bilateral"],
   };
 
   function addCongestionAreas() {
@@ -218,7 +216,6 @@
       ...congAreas,
       {
         id: congAreas.length + 1,
-        foot: null,
         anatomicalArea: null,
         temperature: null,
         hydration: null,
@@ -429,9 +426,24 @@
       <Button on:click={loginWithGoogle} class="mt-2">Try Login Again</Button>
     </div>
   {:else if !user}
-    <div class="p-4 bg-yellow-100 border border-yellow-300 rounded">
-      <p class="mb-2">You are not logged in.</p>
-      <Button on:click={loginWithGoogle}>Login with Google</Button>
+    <div class="flex justify-center items-center h-[60vh]">
+      <div
+        class="max-w-md text-center bg-yellow-50 border border-yellow-200 shadow-md rounded-2xl px-6 py-8"
+      >
+        <h2 class="text-xl font-semibold text-yellow-800 mb-4">
+          You're not logged in
+        </h2>
+        <p class="text-sm text-yellow-700 mb-6">
+          Please log in with your Google account to access your dashboard and
+          saved content.
+        </p>
+        <Button
+          on:click={loginWithGoogle}
+          class="bg-yellow-500 hover:bg-yellow-600 text-white font-medium px-4 py-2 rounded"
+        >
+          Login with Google
+        </Button>
+      </div>
     </div>
   {:else}
     <!-- Form content -->
@@ -508,24 +520,6 @@
             />
             <div class="border p-3 rounded mb-4">
               <Accordion flush>
-                <AccordionItem>
-                  <span slot="header">Foot</span>
-                  <Listgroup>
-                    {#each footItems as option}
-                      <ListgroupItem>
-                        <label class="flex items-center gap-2">
-                          <input
-                            type="radio"
-                            name="foot-{field.id}"
-                            value={option}
-                            bind:group={field.foot}
-                          />
-                          {option}
-                        </label>
-                      </ListgroupItem>
-                    {/each}
-                  </Listgroup>
-                </AccordionItem>
                 <AccordionItem>
                   <span slot="header">
                     Anatomical Area

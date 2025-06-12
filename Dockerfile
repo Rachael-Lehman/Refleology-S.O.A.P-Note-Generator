@@ -1,3 +1,25 @@
+# My Project Name
+This is a full-stack application with a Svelte frontend and an Express backend.
+The frontend and backend are deployed separately and communicate via HTTP API.
+
+## Folder Structure
+
+- `/frontend` – SvelteKit or Vite-based frontend
+- `/backend` – Node.js + Express backend API
+
+## Frontend
+
+- Built with: Svelte, Tailwind CSS, Flowbite
+- Runs on: Vite
+
+### Local Setup
+
+```bash
+cd front
+npm install
+npm run dev
+
+
 # Stage 1: Build Svelte frontend
 FROM node:20 AS builder
 WORKDIR /app

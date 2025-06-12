@@ -85,7 +85,7 @@ async function checkS3Bucket() {
 // =================== Middleware ===================
 console.log("🛠️ Setting up session middleware");
 app.use(session({
-  secret: 's3cr3t',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -112,7 +112,14 @@ passport.use(new GoogleStrategy({
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
   callbackURL: 'http://localhost:3000/auth/google/callback' // update for production
 }, (accessToken, refreshToken, profile, done) => {
-  return done(null, profile);
+
+  return done(null, {
+    googleId: profile.id,
+    name: profile.displayName,
+    email: profile.emails[0].value,
+    photo: profile.photos[0].value,
+    accessToken
+  });
 }));
 
 passport.serializeUser((user, done) => done(null, user));
@@ -126,7 +133,8 @@ console.log("📌 Registering /auth/google/callback route");
 app.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: 'http://localhost:5173' }),
   (req, res) => {
-    // Redirect to frontend after successful login
+    // Redirect to frontend after successful login     //add retreave database here 
+    console.log('user: ', req.user)
     res.redirect('http://localhost:5173');
   }
 );
@@ -145,7 +153,7 @@ app.get('/api/user', (req, res) => {
 });
 
 console.log("📌 Registering /api/logout route");
-app.post('/api/logout', (req, res) => {
+app.post('/api/logout/', (req, res) => {
   req.logout(function (err) {
     if (err) return res.status(500).send('Logout error');
     req.session.destroy(() => {
@@ -155,6 +163,7 @@ app.post('/api/logout', (req, res) => {
   });
 });
 
+/*
 // =================== S3 Upload & List Endpoints ===================
 import PDFDocument from 'pdfkit';
 import { Readable } from 'stream';
@@ -273,33 +282,39 @@ app.get('/list-notes', async (req, res) => {
   }
 });
 
+*/
 
 // =================== Static File Handling ===================
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const distPath = path.join(__dirname, 'dist');
-const indexPath = path.join(distPath, 'index.html');
+const publicPath = path.join(__dirname, 'public');
+const indexPath = path.join(publicPath, 'index.html');
 
-if (!fs.existsSync(indexPath)) {
-  console.error('❌ dist/index.html not found. Did you run `npm run build`?');
+// app.use(express.static(path.join(__dirname, 'dist')));
+/* 
+if (!fs.existsSync(path.join(publicPath, 'public', 'index.html'))) {
+  console.error('❌ public/index.html not found. Did you run `npm run build`?');
   process.exit(1);
 }
-
-console.log("📦 Serving static files from /dist");
-app.use(express.static(distPath));
-
-console.log("🔁 Registering catch-all * route");
-app.get('*', (req, res) => {
-  res.sendFile(indexPath);
+// app.use(express.static(publicPath));
+console.log("📦 Serving static files from /public");
+app.use((req, res) => {
+  res.sendFile(path.join(publicPath, 'public', 'index.html'));
 });
 
+for some reson not working 
+app.get('*', (req, res) => {
+  res.sendFile(indexPath);
+}); 
+*/
+/*
 // Verify S3 bucket when starting server
 checkS3Bucket().then(bucketOk => {
   if (!bucketOk) {
     console.error('Failed to verify/create S3 bucket. File uploads will not work.');
   }
 });
-
+*/
 // =================== Start Server ===================
 console.log("🚀 Starting server...");
 app.listen(3000, () => {

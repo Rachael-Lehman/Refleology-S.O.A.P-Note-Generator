@@ -56,7 +56,7 @@
       <!-- User Menu -->
       <div class="flex items-center gap-4">
         {#if user}
-          <span class="text-sm text-gray-700">Welcome, {user.displayName}</span>
+          <span class="text-sm text-gray-700">Welcome, {user.name}</span>
           <button
             on:click={logout}
             class="bg-red-500 text-white px-4 py-2 rounded-md text-sm hover:bg-red-600"
