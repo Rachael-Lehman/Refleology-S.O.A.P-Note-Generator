@@ -33,6 +33,7 @@
   });
 
   let user = null;
+  let clientList = null;
   let isLoading = true;
   let authError = null;
   let note = "";
@@ -53,7 +54,7 @@
         console.log("User logged in:", user);
         // Only fetch notes if user is logged in
         if (user) {
-          await fetchSavedNotes();
+          await fetchClients();
         }
       } else {
         console.error("Failed to fetch user:", await res.text());
@@ -244,13 +245,20 @@
     try {
       console.log("Attempting to upload note:", noteContent);
       const API_URL = "http://localhost:3000";
-      const response = await fetch(`${API_URL}/api/upload-note`, {
+      const response = await fetch(`${API_URL}/upload-note`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json", //,
+          //  Authorization: `Bearer ${user.token}`,
+        },
         credentials: "include",
         body: JSON.stringify({
           note: noteContent,
-          clientName: formData.clientName,
+          clientData: {
+            firstName: formData.clientFirstName,
+            lastName: formData.clientLastName,
+            dob: formData.clientDOB,
+          },
           date: formData.date,
         }),
       });
@@ -259,7 +267,7 @@
         const result = await response.json();
         console.log("Upload successful:", result);
         toast = { message: "Note uploaded successfully!", type: "success" };
-        await fetchSavedNotes();
+        await fetchClients();
       } else {
         const errorText = await response.text();
         console.error("Upload failed:", errorText);
@@ -267,7 +275,7 @@
       }
     } catch (err) {
       console.error("Upload error:", err);
-      uploadError = `Failed to upload note: ${err.message}`;
+      uploadError = `Failed to upload note`;
       toast = { message: uploadError, type: "error" };
     } finally {
       isUploading = false;
@@ -278,20 +286,20 @@
     toast = { message, type };
   }
 
-  async function fetchSavedNotes() {
+  async function fetchClients() {
     try {
       const API_URL = "http://localhost:3000";
-      const res = await fetch(`${API_URL}/api/list-notes`, {
+      const res = await fetch(`${API_URL}/api/clients`, {
         credentials: "include",
       });
       if (res.ok) {
-        savedNotes = await res.json();
-        console.log("Fetched saved notes:", savedNotes);
+        console.log("Fetched clients:");
+        clientList = await res.json();
       } else {
-        console.error("Failed to fetch notes:", await res.text());
+        console.error("Failed to fetch clients:", await res.text());
       }
     } catch (err) {
-      console.error("Error fetching saved notes:", err);
+      console.error("Error fetching clients:", err);
     }
   }
 
@@ -752,45 +760,28 @@
       {/if}
     {/if}
 
-    <SectionHeader id="saved-notes" title="Existing Notes">
-      {#if Object.keys(savedNotes).length > 0}
-        <div class="space-y-8">
-          {#each Object.entries(savedNotes) as [clientName, notes]}
-            <div class="bg-white rounded-lg shadow-lg p-6">
-              <h2 class="text-xl font-bold mb-4 text-blue-600 border-b pb-2">
-                {clientName
-                  .split("_")
-                  .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-                  .join(" ")}
-              </h2>
-              <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {#each notes as note}
-                  <div
-                    class="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors"
-                  >
-                    <div class="flex justify-between items-start mb-2">
-                      <h3 class="font-medium truncate flex-1">
-                        {new Date(
-                          note.fileName.split("_")[0],
-                        ).toLocaleDateString()}
-                      </h3>
-                      <a
-                        href={note.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="ml-2 inline-flex items-center px-2 py-1 text-sm text-blue-600 hover:bg-blue-100 rounded"
-                      >
-                        📄 View
-                      </a>
-                    </div>
-                  </div>
-                {/each}
+    <SectionHeader id="clients-listed" title="Client List">
+      {#if clientList && clientList.length > 0}
+        <div class="flex flex-col space-y-2">
+          {#each clientList as client}
+            <button
+              type="button"
+              class="w-full text-left bg-blue-50 text-black font-medium rounded-md py-2 px-4 shadow-sm hover:bg-blue-100 transition-colors duration-200"
+              on:click={() => handleClientClick(client.clientKey)}
+              style="min-height: 2.5rem;"
+            >
+              <div class="text-base leading-tight">
+                {client.firstName}
+                {client.lastName}
               </div>
-            </div>
+              <div class="text-xs text-gray-700 opacity-75 mt-0.5">
+                DOB: {new Date(client.dob).toLocaleDateString()}
+              </div>
+            </button>
           {/each}
         </div>
       {:else}
-        <p class="text-gray-500">No saved notes yet</p>
+        <p class="text-gray-500 italic">No saved clients</p>
       {/if}
     </SectionHeader>
   {/if}

@@ -9,36 +9,13 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import bodyParser from 'body-parser';
-import { ListObjectsV2Command } from "@aws-sdk/client-s3";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, PutCommand, DeleteCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
-import {
-  S3Client,
-  HeadBucketCommand,
-  CreateBucketCommand,
-  PutBucketCorsCommand,
-  PutObjectCommand,
-  DeleteObjectCommand
-} from '@aws-sdk/client-s3';
-
+import { getClients, uploadClientDocument } from './handleDataBase.js'
 
 dotenv.config();
 
 // Initialize Express app
 const app = express();
 app.use(bodyParser.json());
-
-// AWS Configuration
-console.log('Checking AWS configuration...');
-
-const s3 = new S3Client({
-  region: "us-east-1",
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-
-  }
-});
 
 console.log('Setting up authentication...')
 
@@ -144,6 +121,7 @@ passport.use(new GoogleStrategy({
   return done(null, {
     token,
     name: profile.displayName,
+    userId: profile.id,
     accessToken
   });
 }));
@@ -158,12 +136,19 @@ app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'em
 console.log("📌 Registering /auth/google/callback route");
 app.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: 'http://localhost:5173' }),
-  (req, res) => {
+  async (req, res) => {
     // Redirect to frontend after successful login     //add retreave database here 
-    console.log('user: ', req.user)
+    console.log('user: ', req.user.userId)
     res.redirect('http://localhost:5173');
   }
 );
+
+app.get('/api/clients', async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: "Not authenticated" });
+  const clients = await getClients(req.user.userId);
+  console.log(clients)
+  res.json(clients);
+});
 
 // Add a debug route to check session
 app.get('/debug-session', (req, res) => {
@@ -189,67 +174,15 @@ app.post('/api/logout/', (req, res) => {
   });
 });
 
-/*
+
 // =================== S3 Upload & List Endpoints ===================
-import PDFDocument from 'pdfkit';
-import { Readable } from 'stream';
 
 app.post('/upload-note', async (req, res) => {
-  try {
-    const { note, clientName, date } = req.body;
-
-    if (!note || !clientName || !date) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-
-    console.log('Creating PDF for:', { clientName, date });
-
-    // Create a clean filename (remove special characters and spaces)
-    const cleanName = clientName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    // Create a folder structure with client name
-    const key = `clients/${cleanName}/${date}_${timestamp}.pdf`;
-
-    // Create PDF
-    const doc = new PDFDocument();
-    let buffers = [];
-    doc.on('data', buffers.push.bind(buffers));
-
-    // Add content to PDF
-    doc.fontSize(16).text('SOAP Note', { align: 'center' });
-    doc.moveDown();
-    doc.fontSize(12).text(note);
-    doc.end();
-
-    // Convert PDF to Buffer
-    const pdfBuffer = Buffer.concat(buffers);
-
-    const command = new PutObjectCommand({
-      Bucket: process.env.AWS_BUCKET_NAME,
-      Key: key,
-      Body: pdfBuffer,
-      ContentType: "application/pdf",
-      Metadata: {
-        'client-name': clientName,
-        'date': date
-      }
-    });
-
-    try {
-      await s3.send(command);
-      res.json({ message: "Uploaded", key });
-    } catch (err) {
-      console.error("Upload error:", err);
-      console.log("🔐 AWS Access Key:", process.env.AWS_ACCESS_KEY_ID);
-      console.log("🔐 AWS Secret Key:", process.env.AWS_SECRET_ACCESS_KEY ? '✅ Present' : '❌ Missing');
-      console.log("🪣 Bucket:", process.env.AWS_BUCKET_NAME);
-      res.status(500).json({ error: "Upload failed" });
-    }
-  } catch (err) {
-    console.error("Error creating PDF:", err);
-    res.status(500).json({ error: "Failed to create PDF" });
-  }
+  console.log(req.body);
+  await uploadClientDocument(req.user.userId, req.body);
+  res.end();
 });
+
 app.get('/s3-test', async (req, res) => {
   try {
     const result = await s3.send(new HeadBucketCommand({ Bucket: process.env.AWS_BUCKET_NAME }));
@@ -308,7 +241,7 @@ app.get('/list-notes', async (req, res) => {
   }
 });
 
-*/
+
 
 // =================== Static File Handling ===================
 const __filename = fileURLToPath(import.meta.url);
