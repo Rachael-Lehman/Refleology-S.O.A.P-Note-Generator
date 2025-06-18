@@ -9,7 +9,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import bodyParser from 'body-parser';
-import { getClients, uploadClientDocument } from './handleDataBase.js'
+import { getClients, uploadClientDocument, getNotes, updateNote, DeleteAccount } from './handleDataBase.js'
 
 dotenv.config();
 
@@ -33,6 +33,16 @@ function requireAuth(req, res, next) {
     res.redirect('http://localhost:3000/api/logout');
   }
 }
+
+const logOut = (req, res) => {
+  req.logout(function (err) {
+    if (err) return res.status(500).send('Logout error');
+    req.session.destroy(() => {
+      res.clearCookie('connect.sid', { path: '/' });
+      res.sendStatus(200);
+    });
+  });
+};
 
 async function checkS3Bucket() {
   const bucketName = process.env.AWS_BUCKET_NAME;
@@ -126,6 +136,23 @@ passport.use(new GoogleStrategy({
   });
 }));
 
+passport.use('google-delete', new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: 'http://localhost:3000/auth/google/delete/callback'
+}, (accessToken, refreshToken, profile, done) => {
+  const token = jwt.sign(
+    { userId: profile.id, name: profile.displayName, email: profile.emails[0].value },
+    process.env.JWT_SECRET,
+    { expiresIn: '5m' }   // much shorter expiration, just for this sensitive operation
+  );
+  return done(null, {
+    token,
+    name: profile.displayName,
+    userId: profile.id,
+    accessToken
+  });
+}));
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((obj, done) => done(null, obj));
 
@@ -164,23 +191,17 @@ app.get('/api/user', (req, res) => {
 });
 
 console.log("📌 Registering /api/logout route");
-app.post('/api/logout/', (req, res) => {
-  req.logout(function (err) {
-    if (err) return res.status(500).send('Logout error');
-    req.session.destroy(() => {
-      res.clearCookie('connect.sid', { path: '/' });
-      res.sendStatus(200);
-    });
-  });
-});
+app.post('/api/logout/', logOut);
+
+
 
 
 // =================== S3 Upload & List Endpoints ===================
 
 app.post('/upload-note', async (req, res) => {
   console.log(req.body);
-  await uploadClientDocument(req.user.userId, req.body);
-  res.end();
+  const result = await uploadClientDocument(req.user.userId, req.body);
+  res.json({ success: result });
 });
 
 app.get('/s3-test', async (req, res) => {
@@ -241,7 +262,66 @@ app.get('/list-notes', async (req, res) => {
   }
 });
 
+app.get('/api/notes', async (req, res) => {
+  const clientKey = req.query.clientKey;
+  if (!req.user || !clientKey) {
+    return res.status(401).json({ error: "Not authenticated or missing clientKey" });
+  }
+  try {
+    const { clientInfo, files } = await getNotes(req.user.userId, clientKey);
+    console.log({ clientInfo, files });
+    res.json({ clientInfo, files });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch notes" });
+  }
 
+});
+app.post('/api/update_note', async (req, res) => {
+  const { s3Key, content } = req.body;
+  if (!req.user || !s3Key || !content) {
+    return res.status(401).json({ error: "Not authenticated or missing clientKey" });
+  }
+  try {
+    const result = await updateNote(req.user.userId, s3Key, content);
+    res.json({ success: result });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch notes" });
+  }
+});
+
+app.get('/auth/google/delete',
+  passport.authenticate('google-delete', { scope: ['profile', 'email'] })
+);
+
+app.get('/auth/google/delete/callback',
+  passport.authenticate('google-delete', { failureRedirect: 'http://localhost:5173' }),
+  async (req, res) => {
+    try {
+      if (!req.user.userId) {
+        return res.status(401).json({ error: "Not authenticated or missing clientKey" });
+      }
+      const result = await DeleteAccount(req.user.userId);
+      if (result) {
+        req.logout(function (err) {
+          if (err) {
+            console.error(err);
+            return res.redirect('http://localhost:5173?logout_error=true');
+          }
+          req.session.destroy(() => {
+            res.clearCookie('connect.sid', { path: '/' });
+            res.redirect('http://localhost:5173?delete_success=true');
+          });
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      res.redirect('http://localhost:5173?delete_failed=true');
+    }
+  }
+);
 
 // =================== Static File Handling ===================
 const __filename = fileURLToPath(import.meta.url);

@@ -1,9 +1,10 @@
 <script>
-  import { Button } from 'flowbite-svelte';
+  import { Button } from "flowbite-svelte";
 
-  export let note = '';
+  export let note = "";
   export let isUploading = false;
   export let onCopy = () => {};
+  export let upload = () => {};
 </script>
 
 <div class="mt-8">
@@ -19,15 +20,21 @@
         📋 Copy Note
       </Button>
     </div>
-    <textarea 
-      readonly 
-      value={note} 
-      rows="8" 
+    <textarea
+      bind:value={note}
+      rows="25"
       class="w-full p-4 pr-28 border rounded bg-gray-50"
     ></textarea>
+    <Button type="submit" class="relative" on:click={upload}>
+      Upload SOAP Note
+    </Button>
     {#if isUploading}
-      <div class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      <div
+        class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50"
+      >
+        <div
+          class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"
+        ></div>
       </div>
     {/if}
   </div>

@@ -1,6 +1,13 @@
 <script>
   import { onMount } from "svelte";
+  import { tweened } from "svelte/motion";
+  import { cubicOut } from "svelte/easing";
+
   let user = null;
+  let showDeleteModal = false;
+  let sliderValue = 0;
+  let sliderMax = 100;
+  let deleting = false;
 
   // Fetch user session
   onMount(async () => {
@@ -26,6 +33,44 @@
   function loginWithGoogle() {
     window.location.href = "http://localhost:3000/auth/google";
   }
+   
+$: {
+    const el = document.querySelector('.slider');
+    if (el) el.style.setProperty('--value', sliderValue);
+  }
+  async function handleDelete() {
+    if (sliderValue >= sliderMax) {
+      deleting = true;
+      window.location.href = "http://localhost:3000/auth/google/delete";
+      /*
+      // Call your backend API here to delete account:
+      try {
+        const API_URL = "http://localhost:3000";
+        const res = await fetch(`${API_URL}/api/delete_account`, {
+          method: "POST",
+          credentials: "include"
+        });
+        if (res.ok) {
+          alert("Account deleted.");
+          window.location.reload(); // or redirect
+        } else {
+          alert("Failed to delete account.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Error deleting account.");
+      }
+      deleting = false;
+
+
+      setTimeout(() => {
+      deleting = false;
+      showDeleteModal = false;
+      sliderValue = 0;
+    }, 2000);
+*/
+    }
+  }
 </script>
 
 <nav class="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
@@ -47,6 +92,9 @@
           >
           <a href="#action" class="text-gray-700 hover:text-blue-600">Action</a>
           <a href="#plan" class="text-gray-700 hover:text-blue-600">Plan</a>
+          <a href="#clients-listed" class="text-gray-700 hover:text-blue-600"
+            >Client List</a
+          >
           <a href="#saved-notes" class="text-gray-700 hover:text-blue-600"
             >Existing Notes</a
           >
@@ -59,9 +107,15 @@
           <span class="text-sm text-gray-700">Welcome, {user.name}</span>
           <button
             on:click={logout}
-            class="bg-red-500 text-white px-4 py-2 rounded-md text-sm hover:bg-red-600"
+            class="bg-yellow-500 text-white px-4 py-2 rounded-md text-sm hover:bg-yellow-600"
           >
             Sign Out
+          </button>
+          <button
+            on:click={() => (showDeleteModal = true)}
+            class="bg-red-500 text-white px-4 py-2 rounded-md text-sm hover:bg-red-600"
+          >
+            Delete Account
           </button>
         {:else}
           <button
@@ -75,3 +129,94 @@
     </div>
   </div>
 </nav>
+
+{#if showDeleteModal}
+  <div class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+    <div class="bg-white rounded-lg shadow-lg p-6 w-96 relative">
+      <h2 class="text-lg font-semibold mb-4 text-center text-red-600">
+        Confirm Account Deletion
+      </h2>
+      <p class="text-sm text-center mb-6 text-gray-700">
+        This action is permanent and cannot be undone. If you're absolutely sure, slide to confirm.
+      </p>
+
+      <!-- Native slider with colored track -->
+      <div class="mb-6">
+        <input
+          type="range"
+          min="0"
+          max={sliderMax}
+          bind:value={sliderValue}
+          class="w-full slider"
+        />
+        <div class="text-center text-black font-bold mt-2">
+          {sliderValue >= sliderMax ? "Confirmed" : "Slide to Confirm"}
+        </div>
+      </div>
+
+      <div class="flex justify-between">
+        <button
+          on:click={() => { showDeleteModal = false; sliderValue = 0; }}
+          class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
+        >
+          Cancel
+        </button>
+
+        <button
+          disabled={sliderValue < sliderMax || deleting}
+          on:click={handleDelete}
+          class="bg-red-600 text-white px-4 py-2 rounded disabled:opacity-50 hover:bg-red-700"
+        >
+          {deleting ? "Deleting..." : "Delete"}
+        </button>
+      </div>
+    </div>
+  </div>
+{/if}
+
+
+<style>
+  /* Total reset of default range appearance */
+input[type="range"].slider {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 2.5rem;
+  background: linear-gradient(
+    to right,
+    red 0%,
+    red calc(var(--value, 0%) * 1%),
+    #e5e7eb calc(var(--value, 0%) * 1%),
+    #e5e7eb 100%
+  );
+  border-radius: 9999px;
+  outline: none;
+  position: relative;
+}
+
+/* We update --value dynamically with JS */
+input[type="range"].slider::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 2.5rem;
+  width: 2.5rem;
+  background: white;
+  border: 3px solid red;
+  border-radius: 50%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+input[type="range"].slider::-moz-range-thumb {
+  height: 2.5rem;
+  width: 2.5rem;
+  background: white;
+  border: 3px solid red;
+  border-radius: 50%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+</style>

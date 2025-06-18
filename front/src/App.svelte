@@ -37,10 +37,13 @@
   let isLoading = true;
   let authError = null;
   let note = "";
-  let savedNotes = [];
+  let savedNotesOndisplay = [];
+  let savedClientOndisplay;
   let isUploading = false;
   let uploadError = null;
   let toast = null;
+  let editingKey = null;
+  let editedContent = "";
 
   onMount(async () => {
     try {
@@ -237,48 +240,51 @@
     }
   }
 
-  async function uploadNote(noteContent) {
-    isUploading = true;
-    uploadError = null;
-    toast = { message: "Uploading SOAP note...", type: "info" };
+  async function uploadNote() {
+    if (note) {
+      let noteContent = note;
+      isUploading = true;
+      uploadError = null;
+      toast = { message: "Uploading SOAP note...", type: "info" };
 
-    try {
-      console.log("Attempting to upload note:", noteContent);
-      const API_URL = "http://localhost:3000";
-      const response = await fetch(`${API_URL}/upload-note`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json", //,
-          //  Authorization: `Bearer ${user.token}`,
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          note: noteContent,
-          clientData: {
-            firstName: formData.clientFirstName,
-            lastName: formData.clientLastName,
-            dob: formData.clientDOB,
+      try {
+        console.log("Attempting to upload note:", noteContent);
+        const API_URL = "http://localhost:3000";
+        const response = await fetch(`${API_URL}/upload-note`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json", //,
+            //  Authorization: `Bearer ${user.token}`,
           },
-          date: formData.date,
-        }),
-      });
+          credentials: "include",
+          body: JSON.stringify({
+            note: noteContent,
+            clientData: {
+              firstName: formData.clientFirstName,
+              lastName: formData.clientLastName,
+              dob: formData.clientDOB,
+            },
+            date: formData.date,
+          }),
+        });
 
-      if (response.ok) {
         const result = await response.json();
-        console.log("Upload successful:", result);
-        toast = { message: "Note uploaded successfully!", type: "success" };
-        await fetchClients();
-      } else {
-        const errorText = await response.text();
-        console.error("Upload failed:", errorText);
-        throw new Error(`Upload failed: ${errorText}`);
+        if (result.success) {
+          console.log("Upload successful:", result);
+          toast = { message: "Note uploaded successfully!", type: "success" };
+          await fetchClients();
+        } else {
+          const errorText = await response.text();
+          console.error("Upload failed:", errorText);
+          throw new Error(`Upload failed: ${errorText}`);
+        }
+      } catch (err) {
+        console.error("Upload error:", err);
+        uploadError = `Failed to upload note`;
+        toast = { message: uploadError, type: "error" };
+      } finally {
+        isUploading = false;
       }
-    } catch (err) {
-      console.error("Upload error:", err);
-      uploadError = `Failed to upload note`;
-      toast = { message: uploadError, type: "error" };
-    } finally {
-      isUploading = false;
     }
   }
 
@@ -295,6 +301,46 @@
       if (res.ok) {
         console.log("Fetched clients:");
         clientList = await res.json();
+        console.log(clientList);
+      } else {
+        console.error("Failed to fetch clients:", await res.text());
+      }
+    } catch (err) {
+      console.error("Error fetching clients:", err);
+    }
+  }
+
+  async function handleClientClick(clientKey) {
+    try {
+      const API_URL = "http://localhost:3000";
+      const res = await fetch(
+        `${API_URL}/api/notes?clientKey=${encodeURIComponent(clientKey)}`,
+        {
+          credentials: "include",
+        },
+      );
+      if (res.ok) {
+        console.log("Fetched notes:");
+        const notesAndClient = await res.json();
+
+        if (notesAndClient.files?.length > 0) {
+          savedNotesOndisplay = notesAndClient.files;
+        }
+
+        if (notesAndClient.clientInfo) {
+          savedClientOndisplay = notesAndClient.clientInfo;
+          console.log("✅ Client info found:", savedClientOndisplay);
+        } else {
+          console.warn("⚠ No client info found.");
+        }
+
+        // Wait for Svelte to finish rendering
+        await tick();
+
+        const savedNotesSection = document.getElementById("saved-notes");
+        if (savedNotesSection) {
+          savedNotesSection.scrollIntoView({ behavior: "smooth" });
+        }
       } else {
         console.error("Failed to fetch clients:", await res.text());
       }
@@ -322,25 +368,6 @@
   };
 
   async function generate(event) {
-    await tick();
-    for (let i = 0; i < congAreas.length; i++) {
-      const area = congAreas[i];
-
-      if (!area.anatomicalAreaValidator) continue; // ✅ skip if not yet bound
-
-      if (!area?.anatomicalArea) {
-        area?.anatomicalAreaValidator.setCustomValidity(
-          "Please select an anatomical area.",
-        );
-      } else {
-        area?.anatomicalAreaValidator.setCustomValidity("");
-      }
-      if (!event.target.checkValidity()) {
-        event.target.reportValidity();
-        return;
-      }
-    }
-
     let soapNote = `SOAP Note\n\nClient Name: ${formData.clientFirstName} ${formData.clientLastName} DOB: ${formData.clientDOB}\nDate: ${formData.date}\nReflexologist: ${formData.reflexologist}\n\n`;
     soapNote += `Subjective:\nChief Complaint: `;
     soapNote += formData.chiefComplaint
@@ -407,7 +434,6 @@
 
     // After generating the note, also save it
     note = soapNote;
-    await uploadNote(soapNote);
   }
 
   async function copyToClipboard(text) {
@@ -417,6 +443,44 @@
     } catch (err) {
       console.error("Failed to copy:", err);
       toast = { message: "Failed to copy to clipboard", type: "error" };
+    }
+  }
+
+  function startEdit(note) {
+    editingKey = note.key;
+    editedContent = note.content;
+  }
+  function cancelEdit() {
+    editingKey = null;
+    editedContent = "";
+  }
+  async function saveEdit(key) {
+    console.log("Saving", key, "with new content:", editedContent);
+    if (key && editedContent) {
+      try {
+        const API_URL = "http://localhost:3000";
+        const res = await fetch(`${API_URL}/api/update_note`, {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ s3Key: key, content: editedContent }),
+        });
+        const result = await res.json();
+        if (result.success) {
+          savedNotesOndisplay = savedNotesOndisplay.map((n) =>
+            n.key === key ? { ...n, content: editedContent } : n,
+          );
+          toast = { message: "Note updated successfully!", type: "success" };
+        }
+        editingKey = null;
+        editedContent = "";
+      } catch (err) {
+        console.error("Error fetching clients:", err);
+        toast = { message: "Failed to updated note:", type: "error" };
+      }
+    } else {
     }
   }
 </script>
@@ -744,9 +808,9 @@
                 class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"
               ></div>
             </div>
-            <span class="opacity-0">Generate & Save SOAP Note</span>
+            <span class="opacity-0"> Render SOAP Note</span>
           {:else}
-            Generate & Save SOAP Note
+            Render SOAP Note
           {/if}
         </Button>
       </div>
@@ -754,7 +818,12 @@
 
     <!-- Generated note display -->
     {#if note}
-      <NoteDisplay {note} {isUploading} onCopy={() => copyToClipboard(note)} />
+      <NoteDisplay
+        {note}
+        {isUploading}
+        onCopy={() => copyToClipboard(note)}
+        upload={async () => await uploadNote()}
+      />
       {#if uploadError}
         <p class="text-red-500 mt-2">{uploadError}</p>
       {/if}
@@ -782,6 +851,72 @@
         </div>
       {:else}
         <p class="text-gray-500 italic">No saved clients</p>
+      {/if}
+    </SectionHeader>
+
+    <SectionHeader id="saved-notes" title="Saved Notes">
+      {#if savedClientOndisplay}
+        <div class="mb-4 text-center">
+          <div class="text-xl font-bold text-gray-800">
+            {savedClientOndisplay.firstName}
+            {savedClientOndisplay.lastName}
+          </div>
+          <div class="text-md text-gray-600">
+            DOB: {savedClientOndisplay.dob}
+          </div>
+        </div>
+      {/if}
+
+      {#if savedNotesOndisplay && savedNotesOndisplay.length > 0}
+        <div class="flex flex-col space-y-3">
+          {#each savedNotesOndisplay as note (note.key)}
+            <div
+              class="w-full bg-white text-black font-medium rounded-md p-4 shadow-sm border border-gray-200 hover:shadow-md transition duration-200"
+            >
+              <div class="flex justify-between items-center mb-2">
+                <div class="text-sm text-gray-600">
+                  Date: {note.date}
+                </div>
+
+                {#if editingKey === note.key}
+                  <button
+                    class="text-sm font-semibold text-green-700 hover:text-green-900 hover:underline transition duration-150"
+                    on:click={() => saveEdit(note.key)}
+                  >
+                    Save
+                  </button>
+                  <button
+                    class="text-sm font-semibold text-gray-500 ml-2"
+                    on:click={() => cancelEdit()}
+                  >
+                    Cancel
+                  </button>
+                {:else}
+                  <button
+                    class="text-sm font-semibold text-blue-700 hover:text-blue-900 hover:underline transition duration-150"
+                    on:click={() => startEdit(note)}
+                  >
+                    Edit
+                  </button>
+                {/if}
+              </div>
+
+              <div class="text-base leading-relaxed whitespace-pre-wrap">
+                {#if editingKey === note.key}
+                  <textarea
+                    class="w-full p-2 border rounded bg-gray-50"
+                    bind:value={editedContent}
+                    rows="25"
+                  ></textarea>
+                {:else}
+                  {note.content}
+                {/if}
+              </div>
+            </div>
+          {/each}
+        </div>
+      {:else}
+        <p class="text-gray-500 italic">No saved notes</p>
       {/if}
     </SectionHeader>
   {/if}
