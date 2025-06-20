@@ -64,6 +64,7 @@ passport.use(new GoogleStrategy({
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
   callbackURL: 'http://localhost:3000/auth/google/callback' // update for production
 }, (accessToken, refreshToken, profile, done) => {
+  console.log('here')
   const token = jwt.sign(
     { userId: profile.id, name: profile.displayName, email: profile.emails[0].value },
     process.env.JWT_SECRET,
@@ -99,7 +100,11 @@ passport.deserializeUser((obj, done) => done(null, obj));
 
 // =================== Auth Routes ===================
 console.log("📌 Registering /auth/google route");
-app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+app.get('/auth/google', passport.authenticate('google', {
+  scope: ['profile', 'email'],
+  prompt: 'consent',   // forces consent screen every time
+  accessType: 'offline'  // (optional) useful if you want refresh tokens
+}));
 
 console.log("📌 Registering /auth/google/callback route");
 app.get('/auth/google/callback',
@@ -112,7 +117,11 @@ app.get('/auth/google/callback',
 );
 
 app.get('/auth/google/delete',
-  passport.authenticate('google-delete', { scope: ['profile', 'email'] })
+  passport.authenticate('google-delete', {
+    scope: ['profile', 'email'],
+    prompt: 'consent',   // forces consent screen every time
+    accessType: 'offline'  // (optional) useful if you want refresh tokens
+  })
 );
 
 app.get('/auth/google/delete/callback',
