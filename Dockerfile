@@ -1,44 +1,23 @@
-# My Project Name
-This is a full-stack application with a Svelte frontend and an Express backend.
-The frontend and backend are deployed separately and communicate via HTTP API.
+# Use an official Node.js runtime as a base image
+FROM node:18-alpine
 
-## Folder Structure
-
-- `/frontend` – SvelteKit or Vite-based frontend
-- `/backend` – Node.js + Express backend API
-
-## Frontend
-
-- Built with: Svelte, Tailwind CSS, Flowbite
-- Runs on: Vite
-
-### Local Setup
-
-```bash
-cd front
-npm install
-npm run dev
-
-
-# Stage 1: Build Svelte frontend
-FROM node:20 AS builder
+# Set the working directory inside the container
 WORKDIR /app
+
+# Copy package.json and package-lock.json first (for better caching)
 COPY package*.json ./
-RUN npm install
+
+# Install dependencies
+RUN npm install --production
+
+# Copy the rest of your app source code
 COPY . .
-RUN npm run build
 
-# Stage 2: Serve with Node
-FROM node:20
-WORKDIR /app
-
-# Copy all files from builder
-COPY --from=builder /app /app
-
-# Install only production dependencies
-RUN npm install --omit=dev
-
-# Expose port (same as your server.js)
+# Expose the port your app runs on
 EXPOSE 3000
 
+# Set environment variables (optional, but usually passed at runtime)
+# ENV NODE_ENV=production
+
+# Command to run your app
 CMD ["node", "server.js"]

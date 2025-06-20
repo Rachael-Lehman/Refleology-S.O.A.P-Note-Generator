@@ -4,14 +4,9 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, PutCommand, DeleteCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import {
     S3Client,
-    HeadBucketCommand,
-    CreateBucketCommand,
-    PutBucketCorsCommand,
     PutObjectCommand,
     GetObjectCommand,
-    DeleteObjectCommand,
-    DeleteObjectsCommand,
-    ListObjectsV2Command
+    DeleteObjectsCommand
 } from '@aws-sdk/client-s3';
 
 dotenv.config();
@@ -152,7 +147,7 @@ export async function getNotes(userId, clientKey) {
                 }
             }));
             if (clientResult.Item) {
-                 clientInfo = {
+                clientInfo = {
                     firstName: clientResult.Item.firstName || '',
                     lastName: clientResult.Item.lastName || '',
                     dob: clientResult.Item.dob || ''
@@ -179,7 +174,7 @@ export async function getNotes(userId, clientKey) {
         }
         catch (err) {
             console.error("Error getting file from S3:", err);
-             return { clientInfo: {}, files: [] };
+            return { clientInfo: {}, files: [] };
         }
     }
     return { clientInfo, files };

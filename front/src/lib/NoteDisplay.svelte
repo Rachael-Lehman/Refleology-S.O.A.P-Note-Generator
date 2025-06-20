@@ -3,6 +3,7 @@
 
   export let note = "";
   export let isUploading = false;
+  export let googleDocsEnabled = false;
   export let onCopy = () => {};
   export let upload = () => {};
 </script>
@@ -25,9 +26,21 @@
       rows="25"
       class="w-full p-4 pr-28 border rounded bg-gray-50"
     ></textarea>
-    <Button type="submit" class="relative" on:click={upload}>
-      Upload SOAP Note
-    </Button>
+    <div
+      class="flex items-center bg-gray-100 rounded-lg p-3 space-x-4 shadow-md"
+    >
+      <Button type="submit" class="relative" on:click={upload}>
+        Upload SOAP Note
+      </Button>
+
+      <div class="flex flex-col items-center">
+        <div class="text-xs text-gray-700 mb-1">Save a copy to Google Docs</div>
+        <label class="switch">
+          <input type="checkbox" bind:checked={googleDocsEnabled} />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
     {#if isUploading}
       <div
         class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50"

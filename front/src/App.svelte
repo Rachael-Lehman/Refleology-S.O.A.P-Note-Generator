@@ -16,22 +16,6 @@
   import { onMount, tick } from "svelte";
   import Navbar from "./Navbar.svelte";
 
-  // Add smooth scrolling behavior
-  onMount(() => {
-    document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
-      anchor.addEventListener("click", function (e) {
-        e.preventDefault();
-        const element = document.querySelector(this.getAttribute("href"));
-        if (element) {
-          element.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
-        }
-      });
-    });
-  });
-
   let user = null;
   let clientList = null;
   let isLoading = true;
@@ -44,37 +28,7 @@
   let toast = null;
   let editingKey = null;
   let editedContent = "";
-
-  onMount(async () => {
-    try {
-      const API_URL = "http://localhost:3000";
-      const res = await fetch(`${API_URL}/api/user`, {
-        credentials: "include",
-      });
-
-      if (res.ok) {
-        user = await res.json();
-        console.log("User logged in:", user);
-        // Only fetch notes if user is logged in
-        if (user) {
-          await fetchClients();
-        }
-      } else {
-        console.error("Failed to fetch user:", await res.text());
-        authError = "Failed to fetch user information";
-      }
-    } catch (err) {
-      console.error("Auth error:", err);
-      authError = "Error connecting to server";
-    } finally {
-      isLoading = false;
-    }
-  });
-
-  function loginWithGoogle() {
-    const API_URL = "http://localhost:3000";
-    window.location.href = `${API_URL}/auth/google`;
-  }
+  let googleDocsEnabled = false;
 
   let congAreas = [
     {
@@ -84,7 +38,7 @@
       hydration: null,
       color: null,
       tissueTone: null,
-      sensitivity: 0, // ✅ ADD THIS LINE
+      sensitivity: 0,
       anatomicalAreaValidator: undefined,
     },
   ];
@@ -120,7 +74,6 @@
     "Flaccid tissue tone",
     "Nodular tissue tone",
   ];
-  let selectedSystemByField = {};
   let anatomicalAreasBySystem = {
     // All Parentheses will be removed from the text on file creation
     Musculoskeletal: [
@@ -215,6 +168,60 @@
     Foot: ["Right foot", "Left foot", "Bilateral"],
   };
 
+  // Add smooth scrolling behavior
+  onMount(() => {
+    document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+      anchor.addEventListener("click", function (e) {
+        e.preventDefault();
+        const element = document.querySelector(this.getAttribute("href"));
+        if (element) {
+          element.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }
+      });
+    });
+  });
+
+  onMount(async () => {
+    try {
+      const API_URL = "http://localhost:3000";
+      const res = await fetch(`${API_URL}/api/user`, {
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        user = await res.json();
+        console.log("User logged in:", user);
+        // Only fetch notes if user is logged in
+        if (user) {
+          await fetchClients();
+        }
+      } else {
+        console.error("Failed to fetch user:", await res.text());
+        authError = "Failed to fetch user information";
+      }
+    } catch (err) {
+      console.error("Auth error:", err);
+      authError = "Error connecting to server";
+    } finally {
+      isLoading = false;
+    }
+  });
+
+
+
+
+
+
+
+  
+  function loginWithGoogle() {
+    const API_URL = "http://localhost:3000";
+    window.location.href = `${API_URL}/auth/google`;
+  }
+
   function addCongestionAreas() {
     congAreas = [
       ...congAreas,
@@ -265,19 +272,37 @@
               dob: formData.clientDOB,
             },
             date: formData.date,
+            googleDocsEnabled,
           }),
         });
 
         const result = await response.json();
         if (result.success) {
-          console.log("Upload successful:", result);
-          toast = { message: "Note uploaded successfully!", type: "success" };
+          let message = `Note uploaded successfully!`;
+          /*
+          if (result.uploadGoogleDoc)
+            message += `\nNote Downloaded successfully!`;
+          else {
+            message +=
+              result.uploadGoogleDoc === googleDocsEnabled
+                ? ``
+                : `\nNote Failed to Download!`;
+          }
+                */
+          toast = { message, type: "success" };
           await fetchClients();
         } else {
           const errorText = await response.text();
           console.error("Upload failed:", errorText);
           throw new Error(`Upload failed: ${errorText}`);
         }
+        if (googleDocsEnabled)
+          await downloadPdf(
+            noteContent,
+            formData.clientFirstName,
+            formData.clientLastName,
+            formData.date,
+          );
       } catch (err) {
         console.error("Upload error:", err);
         uploadError = `Failed to upload note`;
@@ -454,7 +479,7 @@
     editingKey = null;
     editedContent = "";
   }
-  async function saveEdit(key) {
+  async function saveEdit(key, first, last, date) {
     console.log("Saving", key, "with new content:", editedContent);
     if (key && editedContent) {
       try {
@@ -465,15 +490,34 @@
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ s3Key: key, content: editedContent }),
+          body: JSON.stringify({
+            s3Key: key,
+            content: editedContent,
+            googleDocsEnabled,
+          }),
         });
         const result = await res.json();
         if (result.success) {
+          let message = `Note updated successfully!`;
+          /*                                                
+          if (result.uploadGoogleDoc)
+            message += `\nNote Downloaded successfully!`;
+          else {
+            message +=
+              result.uploadGoogleDoc === googleDocsEnabled
+                ? ``
+                : `\nNote Failed to Download!`;
+          }
+                */
           savedNotesOndisplay = savedNotesOndisplay.map((n) =>
             n.key === key ? { ...n, content: editedContent } : n,
           );
-          toast = { message: "Note updated successfully!", type: "success" };
+          toast = { message, type: "success" };
+        } else {
+          toast = { message: "Failed to updated note:", type: "error" };
         }
+        if (googleDocsEnabled)
+          await downloadPdf(editedContent, first, last, date);
         editingKey = null;
         editedContent = "";
       } catch (err) {
@@ -481,6 +525,51 @@
         toast = { message: "Failed to updated note:", type: "error" };
       }
     } else {
+      toast = {
+        message: "Failed to updated note. Missing credentials:",
+        type: "error",
+      };
+    }
+  }
+
+  async function downloadPdf(noteText, firstName, lastName, dateStr) {
+    try {
+      if (noteText && firstName && lastName && dateStr) {
+        dateStr = dateStr.replace(/[/\\]/g, "-");
+        const response = await fetch("http://localhost:3000/api/generate_pdf", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content: noteText }),
+        });
+
+        if (!response.ok) {
+          console.error("Error generating PDF");
+          toast = { message: "Error generating PDF", type: "error" };
+          return;
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${firstName}_${lastName}_${dateStr}.pdf`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        toast = { message: "PDF Generated!", type: "success" };
+      } else {
+        toast = {
+          message: "Error generating PDF: Missing File Info",
+          type: "error",
+        };
+      }
+    } catch (err) {
+      toast = {
+        message: "Error generating PDF:",
+        type: "error",
+      };
+      uploadError = `Error generating PDF:`;
+      console.error(err);
     }
   }
 </script>
@@ -819,7 +908,8 @@
     <!-- Generated note display -->
     {#if note}
       <NoteDisplay
-        {note}
+        bind:note
+        bind:googleDocsEnabled
         {isUploading}
         onCopy={() => copyToClipboard(note)}
         upload={async () => await uploadNote()}
@@ -879,12 +969,39 @@
                 </div>
 
                 {#if editingKey === note.key}
-                  <button
-                    class="text-sm font-semibold text-green-700 hover:text-green-900 hover:underline transition duration-150"
-                    on:click={() => saveEdit(note.key)}
+                  <div
+                    class="flex items-center bg-gray-100 rounded-lg p-3 space-x-4 shadow-md"
                   >
-                    Save
-                  </button>
+                    <button
+                      class="text-sm font-semibold text-green-700 hover:text-green-900 hover:underline transition duration-150"
+                      on:click={() => {
+                        const currentDate = new Date()
+                          .toISOString()
+                          .split("T")[0];
+                        saveEdit(
+                          note.key,
+                          savedClientOndisplay.firstName,
+                          savedClientOndisplay.lastName,
+                          currentDate,
+                        );
+                      }}
+                    >
+                      Save
+                    </button>
+
+                    <div class="flex flex-col items-center">
+                      <div class="text-xs text-gray-700 mb-1">
+                        Save a copy to Google Docs
+                      </div>
+                      <label class="switch">
+                        <input
+                          type="checkbox"
+                          bind:checked={googleDocsEnabled}
+                        />
+                        <span class="slider"></span>
+                      </label>
+                    </div>
+                  </div>
                   <button
                     class="text-sm font-semibold text-gray-500 ml-2"
                     on:click={() => cancelEdit()}
