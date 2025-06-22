@@ -38,6 +38,7 @@
       hydration: null,
       color: null,
       tissueTone: null,
+      tissueFindings: null,
       sensitivity: 0,
       anatomicalAreaValidator: undefined,
     },
@@ -73,6 +74,14 @@
     "Relaxed tissue tone",
     "Flaccid tissue tone",
     "Nodular tissue tone",
+  ];
+  let TissueFindings = [
+    "Calluses",
+    "Puffiness",
+    "Unusual color or rashes",
+    "Scar tissue",
+    "Current injury or bruises",
+    "Wort",
   ];
   let anatomicalAreasBySystem = {
     // All Parentheses will be removed from the text on file creation
@@ -210,13 +219,6 @@
     }
   });
 
-
-
-
-
-
-
-  
   function loginWithGoogle() {
     const API_URL = "http://localhost:3000";
     window.location.href = `${API_URL}/auth/google`;
@@ -232,7 +234,8 @@
         hydration: null,
         color: null,
         tissueTone: null,
-        sensitivity: 0, // ✅ ADD THIS
+        tissueFindings: null,
+        sensitivity: 0,
         anatomicalAreaValidator: undefined,
       },
     ];
@@ -394,66 +397,57 @@
 
   async function generate(event) {
     let soapNote = `SOAP Note\n\nClient Name: ${formData.clientFirstName} ${formData.clientLastName} DOB: ${formData.clientDOB}\nDate: ${formData.date}\nReflexologist: ${formData.reflexologist}\n\n`;
-    soapNote += `Subjective:\nChief Complaint: `;
+    soapNote += `Subjective:\n• Chief Complaint: `;
     soapNote += formData.chiefComplaint
       ? `${formData.chiefComplaint}\n`
       : "N/A\n";
-    soapNote += `Health History: `;
+    soapNote += `• Health History: `;
     soapNote += formData.healthHistory
       ? `${formData.healthHistory}\n\n`
       : "N/A\n\n";
-    soapNote += `Objective:\nObservation: `;
-    soapNote += formData.observation
-      ? `${formData.observation}\n\n`
-      : "N/A\n\n";
+    soapNote += `Objective:\n• Observation: `;
+    soapNote += formData.observation ? `${formData.observation}\n` : "N/A\n";
+    soapNote += `• Areas of Congestion: \n`;
 
     for (let i = 0; i < congAreas.length; i++) {
       let formatedAnatomicalArea =
         congAreas[i]?.anatomicalArea?.replace(/\s*\(.*?\)/g, "") || "";
       if (formatedAnatomicalArea) {
-        soapNote += `• ${formatedAnatomicalArea || ""}\n`;
+        soapNote += `\t• ${formatedAnatomicalArea}, `;
 
-        if (
-          congAreas[i].temperature &&
-          congAreas[i].temperature !== "Normal temperature"
-        )
-          soapNote += `   - Temperature: ${congAreas[i].temperature}\n`;
-        if (
-          congAreas[i].hydration &&
-          congAreas[i].hydration !== "Normal hydration"
-        )
-          soapNote += `   - Hydration: ${congAreas[i].hydration}\n`;
-        if (congAreas[i].color && congAreas[i].color !== "Normal color")
-          soapNote += `   - Color: ${congAreas[i].color}\n`;
-        if (
-          congAreas[i].tissueTone &&
-          congAreas[i].tissueTone !== "Normal tissue tone"
-        )
-          soapNote += `   - Tissue Tone: ${congAreas[i].tissueTone}\n`;
-        if (congAreas[i].sensitivity && congAreas[i].sensitivity !== 0)
-          soapNote += `   - Sensitivity: ${congAreas[i].sensitivity}\n`;
+        if (congAreas[i].temperature)
+          soapNote += `${congAreas[i].temperature}, `;
+        if (congAreas[i].hydration) soapNote += `${congAreas[i].hydration}, `;
+        if (congAreas[i].color) soapNote += `${congAreas[i].color}, `;
+        if (congAreas[i].tissueTone) soapNote += `${congAreas[i].tissueTone}, `;
+        if (congAreas[i].tissueFindings)
+          soapNote += `${congAreas[i].tissueFindings}, `;
+        if (congAreas[i].sensitivity)
+          soapNote += `sensitivity was reported as a "${congAreas[i].sensitivity}"\n`;
       }
     }
 
-    soapNote += `Action:\n`;
+    soapNote += `\n\nAction:\n`;
     soapNote += formData.sessionType
-      ? `Type of Session: ${formData.sessionType}\n`
-      : "";
+      ? `• Type of Session: ${formData.sessionType}\n`
+      : "N/A\n";
     soapNote += formData.areasOfEmphasis
-      ? `Areas of Emphasis: ${formData.areasOfEmphasis}\n`
-      : "";
+      ? `• Areas of Emphasis: ${formData.areasOfEmphasis}\n`
+      : "N/A\n";
     soapNote += formData.clientResponse
-      ? `Client Response: ${formData.clientResponse}\n\n`
-      : "\n";
+      ? `• Client Response: ${formData.clientResponse}\n\n`
+      : "N/A\n\n";
 
     soapNote += `Plan:\n`;
     soapNote += formData.recommendations
-      ? `Recommendations: ${formData.recommendations}\n`
-      : "";
-    soapNote += formData.homeCare ? `Home Care: ${formData.homeCare}\n` : "";
+      ? `• Recommendations: ${formData.recommendations}\n`
+      : "N/A\n";
+    soapNote += formData.homeCare
+      ? `• Home Care: ${formData.homeCare}\n`
+      : "N/A\n";
     soapNote += formData.followUp
-      ? `Follow-up: ${formData.followUp}\n\n`
-      : "\n";
+      ? `• Follow-up: ${formData.followUp}\n\n`
+      : "N/A\n\n";
 
     soapNote += `Reflexologist Signature: ${formData.reflexologist}\nDate: ${formData.date}`;
 
@@ -801,6 +795,24 @@
                             name="tissueTone-{field.id}"
                             value={option}
                             bind:group={field.tissueTone}
+                          />
+                          {option}
+                        </label>
+                      </ListgroupItem>
+                    {/each}
+                  </Listgroup>
+                </AccordionItem>
+                <AccordionItem>
+                  <span slot="header">Tissue Findings</span>
+                  <Listgroup>
+                    {#each TissueFindings as option}
+                      <ListgroupItem>
+                        <label class="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            name="tissueFindings-{field.id}"
+                            value={option}
+                            bind:group={field.tissueFindings}
                           />
                           {option}
                         </label>
