@@ -34,7 +34,7 @@
       </Button>
 
       <div class="flex flex-col items-center">
-        <div class="text-xs text-gray-700 mb-1">Save a copy to Google Docs</div>
+        <div class="text-xs text-gray-700 mb-1">Download PDF</div>
         <label class="switch">
           <input type="checkbox" bind:checked={googleDocsEnabled} />
           <span class="slider"></span>

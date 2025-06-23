@@ -30,6 +30,23 @@
   let editedContent = "";
   let googleDocsEnabled = false;
 
+  let formData = {
+    clientFirstName: "",
+    clientLastName: "",
+    clientDOB: "",
+    date: "",
+    reflexologist: "",
+    chiefComplaint: "",
+    healthHistory: "",
+    observation: "",
+    sessionType: "",
+    areasOfEmphasis: "",
+    clientResponse: "",
+    recommendations: "",
+    homeCare: "",
+    followUp: "",
+  };
+
   let congAreas = [
     {
       id: 1,
@@ -282,6 +299,35 @@
         const result = await response.json();
         if (result.success) {
           let message = `Note uploaded successfully!`;
+          congAreas = [
+            {
+              id: 1,
+              anatomicalArea: null,
+              temperature: null,
+              hydration: null,
+              color: null,
+              tissueTone: null,
+              tissueFindings: null,
+              sensitivity: 0,
+              anatomicalAreaValidator: undefined,
+            },
+          ];
+          formData = {
+            clientFirstName: "",
+            clientLastName: "",
+            clientDOB: "",
+            date: "",
+            reflexologist: "",
+            chiefComplaint: "",
+            healthHistory: "",
+            observation: "",
+            sessionType: "",
+            areasOfEmphasis: "",
+            clientResponse: "",
+            recommendations: "",
+            homeCare: "",
+            followUp: "",
+          };
           /*
           if (result.uploadGoogleDoc)
             message += `\nNote Downloaded successfully!`;
@@ -314,10 +360,6 @@
         isUploading = false;
       }
     }
-  }
-
-  function showToast(message, type = "info") {
-    toast = { message, type };
   }
 
   async function fetchClients() {
@@ -377,24 +419,6 @@
     }
   }
 
-  // Add form field bindings at the top of the script
-  let formData = {
-    clientFirstName: "",
-    clientLastName: "",
-    clientDOB: "",
-    date: "",
-    reflexologist: "",
-    chiefComplaint: "",
-    healthHistory: "",
-    observation: "",
-    sessionType: "",
-    areasOfEmphasis: "",
-    clientResponse: "",
-    recommendations: "",
-    homeCare: "",
-    followUp: "",
-  };
-
   async function generate(event) {
     let soapNote = `SOAP Note\n\nClient Name: ${formData.clientFirstName} ${formData.clientLastName} DOB: ${formData.clientDOB}\nDate: ${formData.date}\nReflexologist: ${formData.reflexologist}\n\n`;
     soapNote += `Subjective:\n• Chief Complaint: `;
@@ -422,32 +446,29 @@
         if (congAreas[i].tissueTone) soapNote += `${congAreas[i].tissueTone}, `;
         if (congAreas[i].tissueFindings)
           soapNote += `${congAreas[i].tissueFindings}, `;
-        if (congAreas[i].sensitivity)
-          soapNote += `sensitivity was reported as a "${congAreas[i].sensitivity}"\n`;
+        soapNote += `sensitivity was reported as a "${congAreas[i]?.sensitivity}"\n`;
       }
     }
 
-    soapNote += `\n\nAction:\n`;
-    soapNote += formData.sessionType
-      ? `• Type of Session: ${formData.sessionType}\n`
-      : "N/A\n";
+    soapNote += `\n\nAction:\n• Type of Session: `;
+    soapNote += formData.sessionType ? `${formData.sessionType}\n` : "N/A\n";
+    soapNote += `• Areas of Emphasis: `;
     soapNote += formData.areasOfEmphasis
-      ? `• Areas of Emphasis: ${formData.areasOfEmphasis}\n`
+      ? `${formData.areasOfEmphasis}\n`
       : "N/A\n";
+    soapNote += `• Client Response: `;
     soapNote += formData.clientResponse
-      ? `• Client Response: ${formData.clientResponse}\n\n`
+      ? `${formData.clientResponse}\n\n`
       : "N/A\n\n";
 
-    soapNote += `Plan:\n`;
+    soapNote += `Plan:\n• Recommendations: `;
     soapNote += formData.recommendations
-      ? `• Recommendations: ${formData.recommendations}\n`
+      ? `${formData.recommendations}\n`
       : "N/A\n";
-    soapNote += formData.homeCare
-      ? `• Home Care: ${formData.homeCare}\n`
-      : "N/A\n";
-    soapNote += formData.followUp
-      ? `• Follow-up: ${formData.followUp}\n\n`
-      : "N/A\n\n";
+    soapNote += `• Home Care: `;
+    soapNote += formData.homeCare ? `${formData.homeCare}\n` : "N/A\n";
+    soapNote += `• Follow-up: `;
+    soapNote += formData.followUp ? `${formData.followUp}\n\n` : "N/A\n\n";
 
     soapNote += `Reflexologist Signature: ${formData.reflexologist}\nDate: ${formData.date}`;
 
@@ -704,7 +725,7 @@
                     <span class="text-red-500 ml-1" aria-hidden="true">*</span>
                   </span>
                   <!-- custom required field for anatomical Area -->
-                  <Accordion class="w-full">
+                  <Accordion class="w-[95%] mx-auto">
                     {#each Object.entries(anatomicalAreasBySystem) as [system, options]}
                       <AccordionItem>
                         <span slot="header">{system}</span>
@@ -1002,9 +1023,7 @@
                     </button>
 
                     <div class="flex flex-col items-center">
-                      <div class="text-xs text-gray-700 mb-1">
-                        Save a copy to Google Docs
-                      </div>
+                      <div class="text-xs text-gray-700 mb-1">Download PDF</div>
                       <label class="switch">
                         <input
                           type="checkbox"
@@ -1051,11 +1070,7 @@
   {/if}
 
   {#if toast}
-    <Toast
-      message={toast.message}
-      type={toast.type}
-      on:close={() => (toast = null)}
-    />
+    <Toast message={toast.message} type={toast.type} />
   {/if}
 </main>
 
