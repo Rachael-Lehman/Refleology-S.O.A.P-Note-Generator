@@ -10,8 +10,14 @@
 
 <div class="mt-8">
   <h2 class="text-xl font-bold mb-4">Generated SOAP Note</h2>
+
+  <!-- Small centered message -->
+  <div class="text-center text-sm text-gray-600 mb-2">
+    Review and edit before submitting.
+  </div>
+
   <div class="relative">
-    <div class="absolute right-2 top-2">
+    <div class="absolute right-8 top-2">
       <Button
         size="sm"
         color="light"
