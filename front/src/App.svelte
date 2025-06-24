@@ -50,6 +50,7 @@
   let congAreas = [
     {
       id: 1,
+      foot: null,
       anatomicalArea: null,
       temperature: null,
       hydration: null,
@@ -57,17 +58,12 @@
       tissueTone: null,
       tissueFindings: null,
       sensitivity: 0,
-      anatomicalAreaValidator: undefined,
     },
   ];
 
-  let temperatureItems = [
-    "Normal temperature",
-    "Cool to touch",
-    "Hot to touch",
-  ];
+  let foot = ["Right foot", "Left foot", "Bilateral"];
+  let temperatureItems = ["Cool to touch", "Hot to touch"];
   let hydrationItems = [
-    "Normal hydration",
     "Dryness",
     "Damp or clammy tissue",
     "Sweatyness",
@@ -76,14 +72,8 @@
     "Congestion",
     "Sponginess",
   ];
-  let colorItems = [
-    "Normal color",
-    "Paleness",
-    "Redness (erythematous)",
-    "Blotchy",
-  ];
+  let colorItems = ["Paleness", "Redness (erythematous)", "Blotchy"];
   let tissueToneItems = [
-    "Normal tissue tone",
     "Resistant tissue tone",
     "Firm tissue tone",
     "Stringy/ropy tissue tone",
@@ -103,95 +93,94 @@
   let anatomicalAreasBySystem = {
     // All Parentheses will be removed from the text on file creation
     Musculoskeletal: [
-      "Proximal hallux, bilat (Cervical)",
-      "1st Metatarsal, bilat (Thoracic)",
-      "1st Cuneiform to calcaneus, bilat (Lumbar)",
-      "Medial edge of posterior calcaneus, bilat (Sacral and Coccyx)",
-      "Interphalangeal joint of hallux, bilat (Jaw)",
-      "MTP #1-5, bilat (Collarbone)",
-      "MTP #5, bilat (Shoulder)",
-      "Lateral MTP to tuberosity of 5th metatarsal, bilat (Arm)",
-      "Lateral tuberosity of 5th metatarsal, bilat (Knee/Elbow)",
-      "Lateral tuberosity of 5th metatarsal to calcaneofibular joint, bilat (Knee/Leg/Hip)",
-      "Lateral posterior calcaneofibular joint, bilat (Pelvis/Hip)",
+      "Proximal hallux, (Cervical)",
+      "1st Metatarsal, (Thoracic)",
+      "1st Cuneiform to calcaneus, (Lumbar)",
+      "Medial edge of posterior calcaneus, (Sacral and Coccyx)",
+      "Interphalangeal joint of hallux, (Jaw)",
+      "MTP #1-5, (Collarbone)",
+      "MTP #5, (Shoulder)",
+      "Lateral MTP to tuberosity of 5th metatarsal, (Arm)",
+      "Lateral tuberosity of 5th metatarsal, (Knee/Elbow)",
+      "Lateral tuberosity of 5th metatarsal to calcaneofibular joint, (Knee/Leg/Hip)",
+      "Lateral posterior calcaneofibular joint, (Pelvis/Hip)",
     ],
     Nervous: [
-      "Distal phalanges #1-5, bilat (Brain)",
-      "Plantar aspect distal phalanges #1-5, bilat (Brain)",
-      "Medial aspect from 1st proximal phalanx to posterior calcaneus, bilat (Spinal Cord)",
-      "Medial edge 1st proximal phalanx, bilat (Cervical)",
-      "Medial edge 1st metatarsal, bilat (Thoracic)",
-      "Medial edge metatarsocuneiform joint to talonavicular joint, bilat (Lumbar)",
-      "Medial edge of medial cuneiform to navicular, bilat (Lumbar)",
-      "Medial edge talonavicular joint to posterior calcaneus, bilat (Sacrum & Coccyx)",
-      "Plantar aspect proximal edge of medial sesamoid on 1st metatarsal, bilat (Vagus nerve)",
-      "Lateral edge of interphalangeal joint of hallux, bilat (Phrenic nerve)",
+      "Distal phalanges #1-5, (Brain)",
+      "Plantar aspect distal phalanges #1-5, (Brain)",
+      "Medial aspect from 1st proximal phalanx to posterior calcaneus, (Spinal Cord)",
+      "Medial edge 1st proximal phalanx, (Cervical)",
+      "Medial edge 1st metatarsal, (Thoracic)",
+      "Medial edge metatarsocuneiform joint to talonavicular joint, (Lumbar)",
+      "Medial edge of medial cuneiform to navicular, (Lumbar)",
+      "Medial edge talonavicular joint to posterior calcaneus, (Sacrum & Coccyx)",
+      "Plantar aspect proximal edge of medial sesamoid on 1st metatarsal, (Vagus nerve)",
+      "Lateral edge of interphalangeal joint of hallux, (Phrenic nerve)",
     ],
     Endocrine: [
-      "Plantar surface of intermediate distal hallux, bilat (Pituitary & Hypothalamus)",
-      "Medial edge of distal hallux, bilat (Pineal)",
-      "Medial edge of proximal hallux, bilat (Thyroid)",
-      "Medial aspect of MTP joint, bilat (Thymus)",
-      "Medial edge of head of 1st metatarsal, bilat (Thymus)",
-      "Plantar surface of lateral base of 1st metatarsal, bilat (Adrenal)",
-      "Plantar aspect of lateral edge of 1st metatarsocuneiform joint, bilat (Adrenal)",
+      "Plantar surface of intermediate distal hallux, (Pituitary & Hypothalamus)",
+      "Medial edge of distal hallux, (Pineal)",
+      "Medial edge of proximal hallux, (Thyroid)",
+      "Medial aspect of MTP joint, (Thymus)",
+      "Medial edge of head of 1st metatarsal, (Thymus)",
+      "Plantar surface of lateral base of 1st metatarsal, (Adrenal)",
+      "Plantar aspect of lateral edge of 1st metatarsocuneiform joint, (Adrenal)",
     ],
     Reproductive: [
-      "Medial aspect of posterior calcaneus, bilat (Uterus/Prostate)",
-      "Medial aspect of posterior process of talus, medial tubercle, bilat (Uterus/Prostate)",
-      "Lateral aspect of posterior process of talus, lateral tubercle, bilat (Ovary/Testis)",
-      "Aspect of posterior calcaneus, bilat (Ovary/Testis)",
-      "Lateral aspect of posterior calcaneus to dorsal talocalcaneonavicular joint to medial posterior calcaneus, bilat (Ova duct / Sperm duct)",
+      "Medial aspect of posterior calcaneus, (Uterus/Prostate)",
+      "Medial aspect of posterior process of talus, medial tubercle, (Uterus/Prostate)",
+      "Lateral aspect of posterior process of talus, lateral tubercle, (Ovary/Testis)",
+      "Aspect of posterior calcaneus, (Ovary/Testis)",
+      "Lateral aspect of posterior calcaneus to dorsal talocalcaneonavicular joint to medial posterior calcaneus, (Ova duct / Sperm duct)",
     ],
     Respiratory: [
-      "Medial edge to plantar aspect of interphalangeal joint of hallux, bilat (Nose)",
-      "Plantar surface of medial base of distal hallux, bilat (Nose)",
-      "Plantar aspect of distal and middle phalanges #2-5, bilat (Sinuses)",
-      "Plantar surface of MTP joints #2-5, bilat (Lungs)",
-      "Plantar aspect of proximal base of phalanges #2-5 to distal head of metatarsals #2-5, bilat (Lungs)",
-      "Plantar surface distal to MTP joints #1-5, bilat (Diaphragm - Paula Stone)",
-      "Plantar aspect of intermediate metatarsal #1 transverse to metatarsal #4 to medial edge of metatarsal #5 tuberosity, bilat (Diaphragm - Touchpoint)",
-      "Plantar surface from distal head of metatarsal #1 transverse to tuberosity of 5th metatarsal, bilat (Diaphragm - Anatomical)",
+      "Medial edge to plantar aspect of interphalangeal joint of hallux, (Nose)",
+      "Plantar surface of medial base of distal hallux, (Nose)",
+      "Plantar aspect of distal and middle phalanges #2-5, (Sinuses)",
+      "Plantar surface of MTP joints #2-5, (Lungs)",
+      "Plantar aspect of proximal base of phalanges #2-5 to distal head of metatarsals #2-5, (Lungs)",
+      "Plantar surface distal to MTP joints #1-5, (Diaphragm - Paula Stone)",
+      "Plantar aspect of intermediate metatarsal #1 transverse to metatarsal #4 to medial edge of metatarsal #5 tuberosity, (Diaphragm - Touchpoint)",
+      "Plantar surface from distal head of metatarsal #1 transverse to tuberosity of 5th metatarsal, (Diaphragm - Anatomical)",
     ],
     Cardiovascular: [
       "Plantar aspect of 1st MTP joint R foot; #1-3 MTP joints L foot (Heart)",
-      "Lateral edge of proximal hallux, bilat (Carotid Artery)",
+      "Lateral edge of proximal hallux, (Carotid Artery)",
     ],
     Immune_Lymphatic: [
-      "Lateral aspect of distal hallux, bilat (Tonsils)",
-      "Medial aspect of MTP joint, bilat (Thymus)",
-      "Medial edge of head of 1st metatarsal, bilat (Thymus)",
+      "Lateral aspect of distal hallux, (Tonsils)",
+      "Medial aspect of MTP joint, (Thymus)",
+      "Medial edge of head of 1st metatarsal, (Thymus)",
       "Plantar surface of the base of 4th-5th metatarsals, L foot (Spleen)",
     ],
     Digestive: [
       "Plantar aspect of metatarsals #5-1 R foot; metatarsal #1 L foot (Liver)",
       "Plantar aspect of metatarsal #4, R foot (Gall Bladder)",
-      "Medial edge to plantar aspect of interphalangeal joint of hallux, bilat (Mouth)",
-      "Medial edge of proximal hallux to proximal aspect of MTP joint, bilat (Esophagus)",
-      "Medial edge of proximal hallux to medial sesamoid bone on 1st metatarsal, bilat (Esophagus)",
+      "Medial edge to plantar aspect of interphalangeal joint of hallux, (Mouth)",
+      "Medial edge of proximal hallux to proximal aspect of MTP joint, (Esophagus)",
+      "Medial edge of proximal hallux to medial sesamoid bone on 1st metatarsal, (Esophagus)",
       "Plantar aspect from lateral edge of metatarsal #1 to lateral edge of metatarsal #4, L foot (Stomach)",
       "Plantar surface from medial edge of metatarsal #1 to medial edge of metatarsal #2, R foot (Duodenum)",
-      "Plantar surface from distal cuneiforms & cuboid to distal calcaneus, bilat (Small Intestines)",
+      "Plantar surface from distal cuneiforms & cuboid to distal calcaneus, (Small Intestines)",
       "Plantar aspect of lateral intermediate cuboid, R foot (Ileocecal Valve)",
       "Plantar surface of R foot from lateral distal calcaneus to proximal 5th metatarsal (Ascending Colon)",
-      "Plantar aspect from lateral edge of cuboid across cuneonavicular joint, bilat (Transverse Colon)",
+      "Plantar aspect from lateral edge of cuboid across cuneonavicular joint, (Transverse Colon)",
       "Plantar aspect from cuboid-5th metatarsal R foot to proximal medial 5th metatarsal L foot (Transverse Colon)",
       "Plantar surface of L lateral edge of cuboid and distal portion of calcaneus (Descending Colon)",
       "Plantar surface from proximal medial 5th metatarsal L foot to intermediate calcaneus medial talus (D-Colon + Sigmoid)",
       "Plantar surface of intermediate calcaneus, L foot (Sigmoid Colon)",
-      "Medial aspect of distal calcaneus to posterior calcaneus, bilat (Rectum)",
-      "Medial aspect of calcaneotalar joint to posterior calcaneus, bilat (Rectum)",
+      "Medial aspect of distal calcaneus to posterior calcaneus, (Rectum)",
+      "Medial aspect of calcaneotalar joint to posterior calcaneus, (Rectum)",
       "Plantar surface of 1st metatarsocuneiform joint R foot to 4th metatarsocuneiform joint L foot (Pancreas)",
     ],
     Urinary: [
-      "Plantar surface of 2nd metatarsal intermediate cuneiform & 3rd metatarsal lateral cuneiform, bilat (Kidneys)",
-      "Plantar aspect of 2nd-3rd metatarsocuneiform joint, bilat (Kidneys)",
-      "Plantar aspect from lateral medial cuneiform to medial distal calcaneus, bilat (Ureters)",
-      "Plantar aspect of 2nd cuneiform and mid navicular, bilat (Ureters)",
-      "Medial aspect of talonavicular joint, bilat (Bladder)",
-      "Medial aspect of sustentaculum tali, bilat (Bladder)",
+      "Plantar surface of 2nd metatarsal intermediate cuneiform & 3rd metatarsal lateral cuneiform, (Kidneys)",
+      "Plantar aspect of 2nd-3rd metatarsocuneiform joint, (Kidneys)",
+      "Plantar aspect from lateral medial cuneiform to medial distal calcaneus, (Ureters)",
+      "Plantar aspect of 2nd cuneiform and mid navicular, (Ureters)",
+      "Medial aspect of talonavicular joint, (Bladder)",
+      "Medial aspect of sustentaculum tali, (Bladder)",
     ],
-    Foot: ["Right foot", "Left foot", "Bilateral"],
   };
 
   // Add smooth scrolling behavior
@@ -246,6 +235,7 @@
       ...congAreas,
       {
         id: congAreas.length + 1,
+        foot: null,
         anatomicalArea: null,
         temperature: null,
         hydration: null,
@@ -253,7 +243,6 @@
         tissueTone: null,
         tissueFindings: null,
         sensitivity: 0,
-        anatomicalAreaValidator: undefined,
       },
     ];
     console.log(congAreas.length);
@@ -302,6 +291,7 @@
           congAreas = [
             {
               id: 1,
+              foot: null,
               anatomicalArea: null,
               temperature: null,
               hydration: null,
@@ -309,7 +299,6 @@
               tissueTone: null,
               tissueFindings: null,
               sensitivity: 0,
-              anatomicalAreaValidator: undefined,
             },
           ];
           formData = {
@@ -420,7 +409,7 @@
   }
 
   async function generate(event) {
-    let soapNote = `SOAP Note\n\nClient Name: ${formData.clientFirstName} ${formData.clientLastName} DOB: ${formData.clientDOB}\nDate: ${formData.date}\nReflexologist: ${formData.reflexologist}\n\n`;
+    let soapNote = `SOAP Note\n\nClient Name: ${formData.clientFirstName} ${formData.clientLastName}\nDate: ${formData.date}\nReflexologist: ${formData.reflexologist}\n\n`;
     soapNote += `Subjective:\n• Chief Complaint: `;
     soapNote += formData.chiefComplaint
       ? `${formData.chiefComplaint}\n`
@@ -436,39 +425,53 @@
     for (let i = 0; i < congAreas.length; i++) {
       let formatedAnatomicalArea =
         congAreas[i]?.anatomicalArea?.replace(/\s*\(.*?\)/g, "") || "";
-      if (formatedAnatomicalArea) {
-        soapNote += `\t• ${formatedAnatomicalArea}, `;
+      if (formatedAnatomicalArea && congAreas[i].foot) {
+        if (congAreas[i].foot !== "Bilateral") {
+          soapNote += `\t• ${congAreas[i].foot}, ${toLower(formatedAnatomicalArea)} `;
+        } else {
+          soapNote += `\t• ${formatedAnatomicalArea} `;
+        }
 
         if (congAreas[i].temperature)
-          soapNote += `${congAreas[i].temperature}, `;
-        if (congAreas[i].hydration) soapNote += `${congAreas[i].hydration}, `;
-        if (congAreas[i].color) soapNote += `${congAreas[i].color}, `;
-        if (congAreas[i].tissueTone) soapNote += `${congAreas[i].tissueTone}, `;
+          soapNote += `${toLower(congAreas[i].temperature)}, `;
+        if (congAreas[i].hydration)
+          soapNote += `${toLower(congAreas[i].hydration)}, `;
+        if (congAreas[i].color) soapNote += `${toLower(congAreas[i].color)}, `;
+        if (congAreas[i].tissueTone)
+          soapNote += `${toLower(congAreas[i].tissueTone)}, `;
         if (congAreas[i].tissueFindings)
-          soapNote += `${congAreas[i].tissueFindings}, `;
-        soapNote += `sensitivity was reported as a "${congAreas[i]?.sensitivity}"\n`;
+          soapNote += `${toLower(congAreas[i].tissueFindings)}, `;
+        soapNote += `sensitivity was reported as a "${congAreas[i]?.sensitivity}"`;
+        if (congAreas[i].foot === "Bilateral") {
+          soapNote += `, bilat\n`;
+        } else {
+          soapNote += `\n`;
+        }
       }
     }
 
-    soapNote += `\n\nAction:\n• Type of Session: `;
-    soapNote += formData.sessionType ? `${formData.sessionType}\n` : "N/A\n";
-    soapNote += `• Areas of Emphasis: `;
-    soapNote += formData.areasOfEmphasis
-      ? `${formData.areasOfEmphasis}\n`
-      : "N/A\n";
-    soapNote += `• Client Response: `;
-    soapNote += formData.clientResponse
-      ? `${formData.clientResponse}\n\n`
-      : "N/A\n\n";
+    if (
+      formData.sessionType ||
+      formData.areasOfEmphasis ||
+      formData.clientResponse
+    ) {
+      soapNote += `\n\nAction:\n`;
+      if (formData.sessionType)
+        soapNote += `• Type of Session: ${formData.sessionType}\n`;
+      if (formData.areasOfEmphasis)
+        soapNote += `• Areas of Emphasis: ${formData.areasOfEmphasis}\n`;
+      if (formData.clientResponse)
+        soapNote += `• Client Response: ${formData.clientResponse}\n`;
+    }
 
-    soapNote += `Plan:\n• Recommendations: `;
-    soapNote += formData.recommendations
-      ? `${formData.recommendations}\n`
-      : "N/A\n";
-    soapNote += `• Home Care: `;
-    soapNote += formData.homeCare ? `${formData.homeCare}\n` : "N/A\n";
-    soapNote += `• Follow-up: `;
-    soapNote += formData.followUp ? `${formData.followUp}\n\n` : "N/A\n\n";
+    if (formData.recommendations || formData.homeCare || formData.followUp) {
+      soapNote += `\n\nPlan:\n`;
+      if (formData.recommendations)
+        soapNote += `• Recommendations: ${formData.recommendations}\n`;
+      if (formData.homeCare) soapNote += `• Home Care: ${formData.homeCare}\n`;
+      if (formData.followUp) soapNote += `• Follow-up: ${formData.followUp}\n`;
+      soapNote += `\n`;
+    }
 
     soapNote += `Reflexologist Signature: ${formData.reflexologist}\nDate: ${formData.date}`;
 
@@ -485,7 +488,9 @@
       toast = { message: "Failed to copy to clipboard", type: "error" };
     }
   }
-
+  function toLower(text) {
+    return text.toLowerCase();
+  }
   function startEdit(note) {
     editingKey = note.key;
     editedContent = note.content;
@@ -493,6 +498,20 @@
   function cancelEdit() {
     editingKey = null;
     editedContent = "";
+  }
+  function updateAreasOfEmphasis() {
+    let areasOfEmphasisList = [];
+    for (let i = 0; i < congAreas.length; i++) {
+      let formatedAnatomicalArea =
+        congAreas[i]?.anatomicalArea?.match(/\((.*?)\)/)?.[1] || "";
+      if (areasOfEmphasisList.length === 0) {
+        formData.areasOfEmphasis = `Focused on reflexes for ${toLower(formatedAnatomicalArea)}`;
+        areasOfEmphasisList.push(formatedAnatomicalArea);
+      } else if (!areasOfEmphasisList.includes(formatedAnatomicalArea)) {
+        formData.areasOfEmphasis += `, ${toLower(formatedAnatomicalArea)}`;
+        areasOfEmphasisList.push(formatedAnatomicalArea);
+      }
+    }
   }
   async function saveEdit(key, first, last, date) {
     console.log("Saving", key, "with new content:", editedContent);
@@ -586,6 +605,12 @@
       uploadError = `Error generating PDF:`;
       console.error(err);
     }
+  }
+  function displaySystemName(system) {
+    if (system === "Immune_Lymphatic") {
+      return "Immune Lymphatic";
+    }
+    return system;
   }
 </script>
 
@@ -714,11 +739,38 @@
               type="text"
               class="sr-only"
               required
-              bind:this={field.anatomicalAreaValidator}
               value={field.anatomicalArea || ""}
+            />
+            <input
+              type="text"
+              class="sr-only"
+              required
+              value={field.foot || ""}
             />
             <div class="border p-3 rounded mb-4">
               <Accordion flush>
+                <AccordionItem>
+                  <span slot="header">
+                    Foot
+                    <span class="text-red-500 ml-1" aria-hidden="true">*</span>
+                  </span>
+                  <Listgroup>
+                    {#each foot as option}
+                      <ListgroupItem>
+                        <label class="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            name="foot-{field.id}"
+                            value={option}
+                            bind:group={field.foot}
+                          />
+                          {option}
+                        </label>
+                      </ListgroupItem>
+                    {/each}
+                  </Listgroup>
+                </AccordionItem>
+
                 <AccordionItem>
                   <span slot="header">
                     Anatomical Area
@@ -728,8 +780,7 @@
                   <Accordion class="w-[95%] mx-auto">
                     {#each Object.entries(anatomicalAreasBySystem) as [system, options]}
                       <AccordionItem>
-                        <span slot="header">{system}</span>
-                        <!--   {#if !selectedSystemByField[field.id] || selectedSystemByField[field.id] === system}    this line is makeing a bug, cant change to a different system after clicking one -->
+                        <span slot="header">{displaySystemName(system)}</span>
                         <Listgroup>
                           {#each options as option}
                             <ListgroupItem>
@@ -739,14 +790,13 @@
                                   name="anatomicalArea-{field.id}"
                                   value={option}
                                   bind:group={field.anatomicalArea}
+                                  on:change={updateAreasOfEmphasis}
                                 />
-                                <!-- Removed on:change={() => selectedSystemByField[field.id] = system} intentionally -->
                                 {option}
                               </label>
                             </ListgroupItem>
                           {/each}
                         </Listgroup>
-                        <!-- {/if} -->
                       </AccordionItem>
                     {/each}
                   </Accordion>
@@ -843,24 +893,21 @@
                 </AccordionItem>
                 <AccordionItem>
                   <span slot="header">Sensitivity</span>
-                  <div class="flex flex-col gap-2 p-2">
-                    <input
-                      type="range"
-                      min="0"
-                      max="4"
-                      step="1"
-                      name="sensitivity-{field.id}"
-                      bind:value={field.sensitivity}
-                      class="w-full"
-                    />
-                    <div class="flex justify-between text-sm text-gray-700">
-                      <span>0</span>
-                      <span>1</span>
-                      <span>2</span>
-                      <span>3</span>
-                      <span>4</span>
-                    </div>
-                  </div>
+                  <Listgroup>
+                    {#each [0, 1, 2, 3, 4] as value}
+                      <ListgroupItem>
+                        <label class="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            name="sensitivity-{field.id}"
+                            {value}
+                            bind:group={field.sensitivity}
+                          />
+                          {value}
+                        </label>
+                      </ListgroupItem>
+                    {/each}
+                  </Listgroup>
                 </AccordionItem>
               </Accordion>
               <button
