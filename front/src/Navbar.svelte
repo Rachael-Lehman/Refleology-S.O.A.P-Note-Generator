@@ -42,33 +42,6 @@ $: {
     if (sliderValue >= sliderMax) {
       deleting = true;
       window.location.href = "http://localhost:3000/auth/google/delete";
-      /*
-      // Call your backend API here to delete account:
-      try {
-        const API_URL = "http://localhost:3000";
-        const res = await fetch(`${API_URL}/api/delete_account`, {
-          method: "POST",
-          credentials: "include"
-        });
-        if (res.ok) {
-          alert("Account deleted.");
-          window.location.reload(); // or redirect
-        } else {
-          alert("Failed to delete account.");
-        }
-      } catch (err) {
-        console.error(err);
-        alert("Error deleting account.");
-      }
-      deleting = false;
-
-
-      setTimeout(() => {
-      deleting = false;
-      showDeleteModal = false;
-      sliderValue = 0;
-    }, 2000);
-*/
     }
   }
 </script>
@@ -96,7 +69,7 @@ $: {
             >Client List</a
           >
           <a href="#saved-notes" class="text-gray-700 hover:text-blue-600"
-            >Existing Notes</a
+            >Saved Notes</a
           >
         </div>
       {/if}

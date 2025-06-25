@@ -14,8 +14,10 @@
   import NoteDisplay from "./lib/NoteDisplay.svelte";
   import SectionHeader from "./lib/SectionHeader.svelte";
   import { onMount, tick } from "svelte";
+  import { slide } from "svelte/transition";
   import Navbar from "./Navbar.svelte";
 
+  let API_URL = import.meta.env.VITE_BackEnd_URL;
   let user = null;
   let clientList = null;
   let isLoading = true;
@@ -28,6 +30,8 @@
   let toast = null;
   let editingKey = null;
   let editedContent = "";
+  let selectedNoteKey = null;
+  let previouslyOpenedKey = null;
   let googleDocsEnabled = false;
 
   let formData = {
@@ -201,7 +205,6 @@
 
   onMount(async () => {
     try {
-      const API_URL = "http://localhost:3000";
       const res = await fetch(`${API_URL}/api/user`, {
         credentials: "include",
       });
@@ -226,7 +229,6 @@
   });
 
   function loginWithGoogle() {
-    const API_URL = "http://localhost:3000";
     window.location.href = `${API_URL}/auth/google`;
   }
 
@@ -265,7 +267,7 @@
 
       try {
         console.log("Attempting to upload note:", noteContent);
-        const API_URL = "http://localhost:3000";
+
         const response = await fetch(`${API_URL}/upload-note`, {
           method: "POST",
           headers: {
@@ -353,7 +355,6 @@
 
   async function fetchClients() {
     try {
-      const API_URL = "http://localhost:3000";
       const res = await fetch(`${API_URL}/api/clients`, {
         credentials: "include",
       });
@@ -371,7 +372,6 @@
 
   async function handleClientClick(clientKey) {
     try {
-      const API_URL = "http://localhost:3000";
       const res = await fetch(
         `${API_URL}/api/notes?clientKey=${encodeURIComponent(clientKey)}`,
         {
@@ -517,7 +517,6 @@
     console.log("Saving", key, "with new content:", editedContent);
     if (key && editedContent) {
       try {
-        const API_URL = "http://localhost:3000";
         const res = await fetch(`${API_URL}/api/update_note`, {
           method: "POST",
           credentials: "include",
@@ -550,8 +549,6 @@
         } else {
           toast = { message: "Failed to updated note:", type: "error" };
         }
-        if (googleDocsEnabled)
-          await downloadPdf(editedContent, first, last, date);
         editingKey = null;
         editedContent = "";
       } catch (err) {
@@ -612,6 +609,22 @@
     }
     return system;
   }
+  async function selectNote(note) {
+    if (selectedNoteKey === note.key) {
+      previouslyOpenedKey = note.key;
+      selectedNoteKey = null;
+    } else {
+      selectedNoteKey = note.key;
+      await tick(); // wait for DOM to update
+      document
+        .getElementById(`note-${note.key}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
+
+  function deselectNote() {
+    selectedNoteKey = null;
+  }
 </script>
 
 <Navbar />
@@ -642,7 +655,7 @@
         </p>
         <Button
           on:click={loginWithGoogle}
-          class="bg-yellow-500 hover:bg-yellow-600 text-white font-medium px-4 py-2 rounded"
+          class="bg-yellow-500 hover:bg-yellow-600 hover:scale-105 transition-transform duration-200 text-white font-medium px-4 py-2 rounded"
         >
           Login with Google
         </Button>
@@ -968,8 +981,6 @@
       </SectionHeader>
 
       <div class="mt-6">
-        <!--redundant on:click={generate}, the form already submits to generate plus on click skips over the forms required fields -->
-        <!-- Removed on:click from button intentionally -->
         <Button type="submit" disabled={isUploading} class="relative">
           {#if isUploading}
             <div class="absolute inset-0 flex items-center justify-center">
@@ -977,9 +988,9 @@
                 class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"
               ></div>
             </div>
-            <span class="opacity-0"> Render SOAP Note</span>
+            <span class="opacity-0"> Create SOAP Note</span>
           {:else}
-            Render SOAP Note
+            Create SOAP Note
           {/if}
         </Button>
       </div>
@@ -1001,26 +1012,29 @@
 
     <SectionHeader id="clients-listed" title="Client List">
       {#if clientList && clientList.length > 0}
-        <div class="flex flex-col space-y-2">
+        <div class="flex flex-col gap-3 w-[90%] mx-auto">
           {#each clientList as client}
             <button
               type="button"
-              class="w-full text-left bg-blue-50 text-black font-medium rounded-md py-2 px-4 shadow-sm hover:bg-blue-100 transition-colors duration-200"
+              class="flex justify-between items-center bg-blue-50 text-black font-semibold rounded-lg py-4 px-6 shadow-md border border-blue-200
+  hover:bg-blue-100 hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
               on:click={() => handleClientClick(client.clientKey)}
-              style="min-height: 2.5rem;"
             >
-              <div class="text-base leading-tight">
-                {client.firstName}
-                {client.lastName}
+              <div class="flex flex-col">
+                <div class="text-lg">
+                  {client.firstName}
+                  {client.lastName}
+                </div>
+                <div class="text-sm text-gray-600 mt-1">
+                  DOB: {new Date(client.dob).toLocaleDateString()}
+                </div>
               </div>
-              <div class="text-xs text-gray-700 opacity-75 mt-0.5">
-                DOB: {new Date(client.dob).toLocaleDateString()}
-              </div>
+              <div class="text-blue-600 text-sm font-medium">View</div>
             </button>
           {/each}
         </div>
       {:else}
-        <p class="text-gray-500 italic">No saved clients</p>
+        <p class="text-gray-500 italic text-center">No saved clients</p>
       {/if}
     </SectionHeader>
 
@@ -1038,78 +1052,116 @@
       {/if}
 
       {#if savedNotesOndisplay && savedNotesOndisplay.length > 0}
-        <div class="flex flex-col space-y-3">
-          {#each savedNotesOndisplay as note (note.key)}
-            <div
-              class="w-full bg-white text-black font-medium rounded-md p-4 shadow-sm border border-gray-200 hover:shadow-md transition duration-200"
+        <!-- Summary row -->
+        <div class="flex flex-col gap-3 mb-8 w-[90%] mx-auto">
+          {#each savedNotesOndisplay as note}
+            <button
+              on:click={() => selectNote(note)}
+              class="w-full flex justify-between items-center bg-blue-50 hover:bg-blue-100 hover:shadow-lg hover:scale-[1.02] border border-blue-200 rounded-lg p-4 shadow-sm transition-all duration-200"
             >
-              <div class="flex justify-between items-center mb-2">
-                <div class="text-sm text-gray-600">
-                  Date: {note.date}
+              <div class="flex flex-col text-left">
+                <div class="text-xl font-semibold text-black-900">
+                  {savedClientOndisplay.firstName}
+                  {savedClientOndisplay.lastName}
                 </div>
-
-                {#if editingKey === note.key}
-                  <div
-                    class="flex items-center bg-gray-100 rounded-lg p-3 space-x-4 shadow-md"
-                  >
-                    <button
-                      class="text-sm font-semibold text-green-700 hover:text-green-900 hover:underline transition duration-150"
-                      on:click={() => {
-                        const currentDate = new Date()
-                          .toISOString()
-                          .split("T")[0];
-                        saveEdit(
-                          note.key,
-                          savedClientOndisplay.firstName,
-                          savedClientOndisplay.lastName,
-                          currentDate,
-                        );
-                      }}
-                    >
-                      Save
-                    </button>
-
-                    <div class="flex flex-col items-center">
-                      <div class="text-xs text-gray-700 mb-1">Download PDF</div>
-                      <label class="switch">
-                        <input
-                          type="checkbox"
-                          bind:checked={googleDocsEnabled}
-                        />
-                        <span class="slider"></span>
-                      </label>
-                    </div>
-                  </div>
-                  <button
-                    class="text-sm font-semibold text-gray-500 ml-2"
-                    on:click={() => cancelEdit()}
-                  >
-                    Cancel
-                  </button>
-                {:else}
-                  <button
-                    class="text-sm font-semibold text-blue-700 hover:text-blue-900 hover:underline transition duration-150"
-                    on:click={() => startEdit(note)}
-                  >
-                    Edit
-                  </button>
-                {/if}
+                <div class="mt-1 text-lg font-semibold text-black-700">
+                  {new Date(note.date).toLocaleDateString()}
+                </div>
               </div>
-
-              <div class="text-base leading-relaxed whitespace-pre-wrap">
-                {#if editingKey === note.key}
-                  <textarea
-                    class="w-full p-2 border rounded bg-gray-50"
-                    bind:value={editedContent}
-                    rows="25"
-                  ></textarea>
-                {:else}
-                  {note.content}
-                {/if}
-              </div>
-            </div>
+              <div class="text-sm font-medium text-blue-600">View</div>
+            </button>
           {/each}
         </div>
+
+        <!-- Full selected note display -->
+        {#if selectedNoteKey}
+          <div class="mt-4">
+            {#each savedNotesOndisplay as note (note.key)}
+              <div transition:slide>
+                {#if note.key === selectedNoteKey}
+                  <div
+                    id={"note-" + note.key}
+                    class="max-w-3xl mx-auto bg-white text-black font-medium rounded-xl p-6 shadow-md border border-gray-200 hover:shadow-lg transition-all duration-200"
+                  >
+                    <div class="flex justify-between items-center mb-2">
+                      <div class="text-sm text-gray-600">Date: {note.date}</div>
+
+                      {#if editingKey === note.key}
+                        <button
+                          class="text-sm font-semibold text-green-700 hover:text-green-900 hover:underline transition duration-150"
+                          on:click={() => {
+                            const currentDate = new Date()
+                              .toISOString()
+                              .split("T")[0];
+                            saveEdit(
+                              note.key,
+                              savedClientOndisplay.firstName,
+                              savedClientOndisplay.lastName,
+                              currentDate,
+                            );
+                          }}
+                        >
+                          Save
+                        </button>
+                        <button
+                          class="text-sm font-semibold text-gray-500 ml-2"
+                          on:click={() => cancelEdit()}
+                        >
+                          Cancel
+                        </button>
+                      {:else}
+                        <div class="flex justify-end space-x-3 mt-4">
+                          <button
+                            class="text-sm font-semibold text-blue-700 hover:text-blue-900 hover:scale-110 transition-all duration-150"
+                            on:click={() => startEdit(note)}
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            class="text-sm font-semibold text-green-700 hover:text-green-900 hover:scale-110 transition-all duration-150"
+                            on:click={() => {
+                              const currentDate = new Date()
+                                .toISOString()
+                                .split("T")[0];
+                              downloadPdf(
+                                note,
+                                savedClientOndisplay.firstName,
+                                savedClientOndisplay.lastName,
+                                currentDate,
+                              );
+                            }}
+                          >
+                            Download PDF
+                          </button>
+
+                          <button
+                            class="text-sm text-red-500 hover:underline hover:scale-110 transition-all duration-150"
+                            on:click={deselectNote}
+                          >
+                            Close
+                          </button>
+                        </div>
+                      {/if}
+                    </div>
+
+                    <div class="text-base leading-relaxed whitespace-pre-wrap">
+                      {#if editingKey === note.key}
+                        <textarea
+                          class="w-full p-2 border rounded bg-gray-50"
+                          bind:value={editedContent}
+                          rows="25"
+                        ></textarea>
+                      {:else}
+                        {note.content}
+                      {/if}
+                    </div>
+                  </div>
+                {/if}
+              </div>
+            {/each}
+          </div>
+        {/if}
       {:else}
         <p class="text-gray-500 italic">No saved notes</p>
       {/if}

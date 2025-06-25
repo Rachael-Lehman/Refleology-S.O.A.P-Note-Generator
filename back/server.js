@@ -46,7 +46,7 @@ app.use(session({
 
 console.log("🛠️ Setting up CORS");
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: process.env.FrontEnd_URL,
   methods: ['GET', 'POST', 'OPTIONS'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -108,11 +108,11 @@ app.get('/auth/google', passport.authenticate('google', {
 
 console.log("📌 Registering /auth/google/callback route");
 app.get('/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: 'http://localhost:5173' }),
+  passport.authenticate('google', { failureRedirect: process.env.FrontEnd_URL }),
   async (req, res) => {
     // Redirect to frontend after successful login
     console.log('user: ', req.user.userId)
-    res.redirect('http://localhost:5173');
+    res.redirect(process.env.FrontEnd_URL);
   }
 );
 
@@ -125,7 +125,7 @@ app.get('/auth/google/delete',
 );
 
 app.get('/auth/google/delete/callback',
-  passport.authenticate('google-delete', { failureRedirect: 'http://localhost:5173' }),
+  passport.authenticate('google-delete', { failureRedirect: process.env.FrontEnd_URL }),
   async (req, res) => {
     try {
       if (!req.user.userId) {
@@ -136,17 +136,17 @@ app.get('/auth/google/delete/callback',
         req.logout(function (err) {
           if (err) {
             console.error(err);
-            return res.redirect('http://localhost:5173?logout_error=true');
+            return res.redirect(`${process.env.FrontEnd_URL}?logout_error=true`);
           }
           req.session.destroy(() => {
             res.clearCookie('connect.sid', { path: '/' });
-            res.redirect('http://localhost:5173?delete_success=true');
+            res.redirect(`${process.env.FrontEnd_URL}?delete_success=true`);
           });
         });
       }
     } catch (err) {
       console.error(err);
-      res.redirect('http://localhost:5173?delete_failed=true');
+      res.redirect(`${process.env.FrontEnd_URL}?delete_failed=true`);
     }
   }
 );
