@@ -783,6 +783,13 @@
                             name="foot-{field.id}"
                             value={option}
                             bind:group={field.foot}
+                            on:click={() => {
+                              if (field.foot === option) {
+                                field.foot = null;
+                              } else {
+                                field.foot = option;
+                              }
+                            }}
                           />
                           {option}
                         </label>
@@ -811,6 +818,13 @@
                                   value={option}
                                   bind:group={field.anatomicalArea}
                                   on:change={updateAreasOfEmphasis}
+                                  on:click={() => {
+                                    if (field.anatomicalArea === option) {
+                                      field.anatomicalArea = null;
+                                    } else {
+                                      field.anatomicalArea = option;
+                                    }
+                                  }}
                                 />
                                 {option}
                               </label>
@@ -832,6 +846,13 @@
                             name="temperature-{field.id}"
                             value={option}
                             bind:group={field.temperature}
+                            on:click={() => {
+                              if (field.temperature === option) {
+                                field.temperature = null;
+                              } else {
+                                field.temperature = option;
+                              }
+                            }}
                           />
                           {option}
                         </label>
@@ -850,6 +871,13 @@
                             name="hydration-{field.id}"
                             value={option}
                             bind:group={field.hydration}
+                            on:click={() => {
+                              if (field.hydration === option) {
+                                field.hydration = null;
+                              } else {
+                                field.hydration = option;
+                              }
+                            }}
                           />
                           {option}
                         </label>
@@ -868,6 +896,13 @@
                             name="color-{field.id}"
                             value={option}
                             bind:group={field.color}
+                            on:click={() => {
+                              if (field.color === option) {
+                                field.color = null;
+                              } else {
+                                field.color = option;
+                              }
+                            }}
                           />
                           {option}
                         </label>
@@ -886,6 +921,13 @@
                             name="tissueTone-{field.id}"
                             value={option}
                             bind:group={field.tissueTone}
+                            on:click={() => {
+                              if (field.tissueTone === option) {
+                                field.tissueTone = null;
+                              } else {
+                                field.tissueTone = option;
+                              }
+                            }}
                           />
                           {option}
                         </label>
@@ -904,6 +946,13 @@
                             name="tissueFindings-{field.id}"
                             value={option}
                             bind:group={field.tissueFindings}
+                            on:click={() => {
+                              if (field.tissueFindings === option) {
+                                field.tissueFindings = null;
+                              } else {
+                                field.tissueFindings = option;
+                              }
+                            }}
                           />
                           {option}
                         </label>
