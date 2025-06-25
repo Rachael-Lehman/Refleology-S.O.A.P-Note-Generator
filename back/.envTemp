@@ -1,8 +1,0 @@
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-SESSION_SECRET=s3cr3t123longpassword642
-JWT_SECRET=a98pyt64theBesTs3cr3t
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
-AWS_DynamoDB_TableName=reflexologyClientNotes
-AWS_S3_BucketName=reflexologynote12345

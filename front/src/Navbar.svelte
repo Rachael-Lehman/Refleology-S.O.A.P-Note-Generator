@@ -8,30 +8,35 @@
   let sliderValue = 0;
   let sliderMax = 100;
   let deleting = false;
+  let API_URL = import.meta.env.VITE_BackEnd_URL;
 
   // Fetch user session
   onMount(async () => {
-    const res = await fetch("http://localhost:3000/api/user", {
+    if(API_URL){
+      const res = await fetch(`${API_URL}/api/user`, {
       credentials: "include",
     });
     if (res.ok) {
       user = await res.json();
     }
+    }
   });
 
   // ✅ Logout function lives here
   async function logout() {
-    await fetch("http://localhost:3000/api/logout", {
+    if(API_URL){
+      await fetch(`${API_URL}/api/logout`, {
       method: "POST",
       credentials: "include",
     });
 
     user = null;
     window.location.reload(); // Force re-check from server
+    }
   }
 
   function loginWithGoogle() {
-    window.location.href = "http://localhost:3000/auth/google";
+    if(API_URL) window.location.href = `${API_URL}/auth/google`;
   }
    
 $: {
@@ -39,9 +44,9 @@ $: {
     if (el) el.style.setProperty('--value', sliderValue);
   }
   async function handleDelete() {
-    if (sliderValue >= sliderMax) {
+    if (sliderValue >= sliderMax && API_URL) {
       deleting = true;
-      window.location.href = "http://localhost:3000/auth/google/delete";
+      window.location.href = `${API_URL}/auth/google/delete`;
     }
   }
 </script>

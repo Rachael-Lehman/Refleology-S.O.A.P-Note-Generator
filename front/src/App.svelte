@@ -567,7 +567,7 @@
     try {
       if (noteText && firstName && lastName && dateStr) {
         dateStr = dateStr.replace(/[/\\]/g, "-");
-        const response = await fetch("http://localhost:3000/api/generate_pdf", {
+        const response = await fetch(`${API_URL}/api/generate_pdf`, {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },

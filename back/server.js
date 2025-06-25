@@ -62,7 +62,7 @@ console.log("🔐 Configuring Google OAuth strategy");
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: 'http://localhost:3000/auth/google/callback' // update for production
+  callbackURL: `${process.env.BackEnd_URL}/auth/google/callback` // update for production
 }, (accessToken, refreshToken, profile, done) => {
   console.log('here')
   const token = jwt.sign(
@@ -81,7 +81,7 @@ passport.use(new GoogleStrategy({
 passport.use('google-delete', new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: 'http://localhost:3000/auth/google/delete/callback'
+  callbackURL: `${process.env.BackEnd_URL}/auth/google/delete/callback`
 }, (accessToken, refreshToken, profile, done) => {
   const token = jwt.sign(
     { userId: profile.id, name: profile.displayName, email: profile.emails[0].value },
@@ -253,5 +253,5 @@ app.get('/debug-session', (req, res) => {
 // =================== Start Server ===================
 console.log("🚀 Starting server...");
 app.listen(3000, () => {
-  console.log('✅ Server running at http://localhost:3000');
+  console.log(`✅ Server running at ${process.env.BackEnd_URL}`);
 });

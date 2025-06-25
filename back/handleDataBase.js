@@ -55,7 +55,7 @@ export async function uploadClientDocument(userId, body) {
     if (userId && note && clientData && date && isValidDate(date)) {
         userId = String(userId);
         const { firstName, lastName, dob } = clientData;
-        const clientKey = `CLIENT#${firstName}-${lastName}-${dob}`;
+       const clientKey = `CLIENT#${sanitize(firstName)}-${sanitize(lastName)}-${sanitize(dob)}`;
         const filename = `Date${safeName(date)}-${uuidv4()}.txt`;
         const s3Key = `${userId}/${filename}`;
         const rawDate = new Date(date);
@@ -270,6 +270,7 @@ export async function DeleteAccount(userId) {
 }
 
 const safeName = (str) => str.replace(/[^a-zA-Z0-9_-]/g, '');
+const sanitize = str => String(str).replace(/[^a-zA-Z0-9_-]/g, '');
 const isValidDate = (date) => {
     const d = new Date(date);
     return d instanceof Date && !isNaN(d);
