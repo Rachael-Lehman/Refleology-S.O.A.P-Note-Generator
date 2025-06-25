@@ -8,9 +8,13 @@ import cors from 'cors';
 import PDFDocument from 'pdfkit';
 import { PassThrough } from 'stream';
 import bodyParser from 'body-parser';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { getClients, uploadClientDocument, getNotes, updateNote, DeleteAccount } from './handleDataBase.js'
 
 dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const logOut = (req, res) => {
   req.logout(function (err) {
@@ -210,31 +214,32 @@ app.post('/api/update_note', async (req, res) => {
 });
 
 app.post('/api/generate_pdf', (req, res) => {
-  const { content } = req.body;
+  let { content } = req.body;
 
   if (!content) {
     return res.status(400).json({ error: "Missing content." });
   }
-
-  // Create a new PDF document
+console.log(content)
+  content = content.replace(/\t/g, '    ');
+console.log(content)
   const doc = new PDFDocument();
-
-  // We’ll use a PassThrough stream to send PDF directly to client
   const passthroughStream = new PassThrough();
+
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', 'attachment; filename="note.pdf"');
 
-  // Pipe the PDF document into the passthrough stream
   doc.pipe(passthroughStream);
   passthroughStream.pipe(res);
 
-  // Add the text
+  const fontPath = path.join(__dirname, 'fonts', 'LiberationSans-Regular.ttf');
+  doc.registerFont('LiberationSans', fontPath);
+  doc.font('LiberationSans');
+
   doc.fontSize(12).text(content, {
     align: 'left',
-    lineGap: 5
+    lineGap: 5,
   });
 
-  // Finalize PDF file
   doc.end();
 });
 

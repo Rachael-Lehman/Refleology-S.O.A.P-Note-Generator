@@ -290,6 +290,14 @@
         const result = await response.json();
         if (result.success) {
           let message = `Note uploaded successfully!`;
+          if (googleDocsEnabled)
+            await downloadPdf(
+              noteContent,
+              formData.clientFirstName,
+              formData.clientLastName,
+              formData.date,
+            );
+
           congAreas = [
             {
               id: 1,
@@ -319,6 +327,7 @@
             homeCare: "",
             followUp: "",
           };
+          note = "";
           /*
           if (result.uploadGoogleDoc)
             message += `\nNote Downloaded successfully!`;
@@ -336,13 +345,6 @@
           console.error("Upload failed:", errorText);
           throw new Error(`Upload failed: ${errorText}`);
         }
-        if (googleDocsEnabled)
-          await downloadPdf(
-            noteContent,
-            formData.clientFirstName,
-            formData.clientLastName,
-            formData.date,
-          );
       } catch (err) {
         console.error("Upload error:", err);
         uploadError = `Failed to upload note`;
@@ -618,7 +620,7 @@
       await tick(); // wait for DOM to update
       document
         .getElementById(`note-${note.key}`)
-        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }
 
@@ -1125,7 +1127,7 @@
                                 .toISOString()
                                 .split("T")[0];
                               downloadPdf(
-                                note,
+                                note.content,
                                 savedClientOndisplay.firstName,
                                 savedClientOndisplay.lastName,
                                 currentDate,
