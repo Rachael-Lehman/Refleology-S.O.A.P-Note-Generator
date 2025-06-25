@@ -412,42 +412,47 @@
 
   async function generate(event) {
     let soapNote = `SOAP Note\n\nClient Name: ${formData.clientFirstName} ${formData.clientLastName}\nDate: ${formData.date}\nReflexologist: ${formData.reflexologist}\n\n`;
-    soapNote += `Subjective:\n• Chief Complaint: `;
-    soapNote += formData.chiefComplaint
-      ? `${formData.chiefComplaint}\n`
-      : "N/A\n";
-    soapNote += `• Health History: `;
-    soapNote += formData.healthHistory
-      ? `${formData.healthHistory}\n\n`
-      : "N/A\n\n";
-    soapNote += `Objective:\n• Observation: `;
-    soapNote += formData.observation ? `${formData.observation}\n` : "N/A\n";
-    soapNote += `• Areas of Congestion: \n`;
+    if (formData.chiefComplaint || formData.healthHistory) {
+      soapNote += `Subjective:\n`;
+      if (formData.chiefComplaint)
+        soapNote += `• Chief Complaint: ${formData.chiefComplaint}\n`;
+      if (formData.healthHistory)
+        soapNote += `• Health History: ${formData.healthHistory}\n`;
+      soapNote += `\n`;
+    }
+    if (formData.observation || congAreas.length > 0) {
+      soapNote += `Objective:\n`;
+      if (formData.observation)
+        soapNote += `• Observation: ${formData.observation}\n`;
+      if (congAreas.length > 0) {
+        soapNote += `• Areas of Congestion: \n`;
+        for (let i = 0; i < congAreas.length; i++) {
+          let formatedAnatomicalArea =
+            congAreas[i]?.anatomicalArea?.replace(/\s*\(.*?\)/g, "") || "";
+          if (formatedAnatomicalArea && congAreas[i].foot) {
+            if (congAreas[i].foot !== "Bilateral") {
+              soapNote += `\t• ${congAreas[i].foot}, ${toLower(formatedAnatomicalArea)} `;
+            } else {
+              soapNote += `\t• ${formatedAnatomicalArea} `;
+            }
 
-    for (let i = 0; i < congAreas.length; i++) {
-      let formatedAnatomicalArea =
-        congAreas[i]?.anatomicalArea?.replace(/\s*\(.*?\)/g, "") || "";
-      if (formatedAnatomicalArea && congAreas[i].foot) {
-        if (congAreas[i].foot !== "Bilateral") {
-          soapNote += `\t• ${congAreas[i].foot}, ${toLower(formatedAnatomicalArea)} `;
-        } else {
-          soapNote += `\t• ${formatedAnatomicalArea} `;
-        }
-
-        if (congAreas[i].temperature)
-          soapNote += `${toLower(congAreas[i].temperature)}, `;
-        if (congAreas[i].hydration)
-          soapNote += `${toLower(congAreas[i].hydration)}, `;
-        if (congAreas[i].color) soapNote += `${toLower(congAreas[i].color)}, `;
-        if (congAreas[i].tissueTone)
-          soapNote += `${toLower(congAreas[i].tissueTone)}, `;
-        if (congAreas[i].tissueFindings)
-          soapNote += `${toLower(congAreas[i].tissueFindings)}, `;
-        soapNote += `sensitivity was reported as a "${congAreas[i]?.sensitivity}"`;
-        if (congAreas[i].foot === "Bilateral") {
-          soapNote += `, bilat\n`;
-        } else {
-          soapNote += `\n`;
+            if (congAreas[i].temperature)
+              soapNote += `${toLower(congAreas[i].temperature)}, `;
+            if (congAreas[i].hydration)
+              soapNote += `${toLower(congAreas[i].hydration)}, `;
+            if (congAreas[i].color)
+              soapNote += `${toLower(congAreas[i].color)}, `;
+            if (congAreas[i].tissueTone)
+              soapNote += `${toLower(congAreas[i].tissueTone)}, `;
+            if (congAreas[i].tissueFindings)
+              soapNote += `${toLower(congAreas[i].tissueFindings)}, `;
+            soapNote += `sensitivity was reported as a "${congAreas[i]?.sensitivity}"`;
+            if (congAreas[i].foot === "Bilateral") {
+              soapNote += `, bilat\n`;
+            } else {
+              soapNote += `\n`;
+            }
+          }
         }
       }
     }
