@@ -31,7 +31,6 @@
   let editingKey = null;
   let editedContent = "";
   let selectedNoteKey = null;
-  let previouslyOpenedKey = null;
   let googleDocsEnabled = false;
 
   let formData = {
@@ -258,6 +257,87 @@
     }
   }
 
+  async function deleteNote(noteKey, clientKey) {
+    if (!noteKey || !clientKey) {
+      toast = {
+        message: "Error Deleting Note: Missing credentials",
+        type: "error",
+      };
+      return;
+    }
+    try {
+      const response = await fetch(`${API_URL}/api/delete/note`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          clientKey,
+          noteKey,
+        }),
+      });
+
+      const result = await response.json();
+      if (!result?.success) {
+        toast = { message: result?.message, type: "error" };
+        return;
+      }
+      savedNotesOndisplay = savedNotesOndisplay.filter(
+        (n) => n.key !== noteKey,
+      );
+      if (selectedNoteKey === noteKey) selectedNoteKey = null;
+      if (savedNotesOndisplay.length <= 0) {
+        clientList = clientList.filter((c) => c.clientKey !== clientKey);
+        savedClientOndisplay = null;
+      }
+      toast = {
+        message: result?.message,
+        type: result?.success ? "success" : "error",
+      };
+    } catch (err) {
+      console.error(err);
+      toast = { message: "Error Deleting Note", type: "error" };
+    }
+  }
+
+  async function deleteClient(clientKey) {
+    if (!clientKey) {
+      toast = {
+        message: "Error Deleting Client: Missing credentials",
+        type: "error",
+      };
+      return;
+    }
+    try {
+      const response = await fetch(`${API_URL}/api/delete/client`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          clientKey,
+        }),
+      });
+
+      const result = await response.json();
+      if (!result?.success) {
+        toast = { message: result?.message, type: "error" };
+        return;
+      }
+      clientList = clientList.filter((c) => c.clientKey !== clientKey);
+      if (savedClientOndisplay.key === clientKey) {
+        savedClientOndisplay = null;
+        selectedNoteKey = null;
+        savedNotesOndisplay = [];
+      }
+    } catch (err) {
+      console.error(err);
+      toast = { message: "Error Deleting Client", type: "error" };
+    }
+  }
+
   async function uploadNote() {
     if (note) {
       let noteContent = note;
@@ -411,6 +491,9 @@
   }
 
   async function generate(event) {
+    formData.date = new Date(formData.date).toLocaleDateString("en-US", {
+      timeZone: "UTC",
+    });
     let soapNote = `SOAP Note\n\nClient Name: ${formData.clientFirstName} ${formData.clientLastName}\nDate: ${formData.date}\nReflexologist: ${formData.reflexologist}\n\n`;
     if (formData.chiefComplaint || formData.healthHistory) {
       soapNote += `Subjective:\n`;
@@ -618,7 +701,6 @@
   }
   async function selectNote(note) {
     if (selectedNoteKey === note.key) {
-      previouslyOpenedKey = note.key;
       selectedNoteKey = null;
     } else {
       selectedNoteKey = note.key;
@@ -1052,7 +1134,6 @@
       </div>
     </form>
 
-    <!-- Generated note display -->
     {#if note}
       <NoteDisplay
         bind:note
@@ -1070,23 +1151,40 @@
       {#if clientList && clientList.length > 0}
         <div class="flex flex-col gap-3 w-[90%] mx-auto">
           {#each clientList as client}
-            <button
-              type="button"
-              class="flex justify-between items-center bg-blue-50 text-black font-semibold rounded-lg py-4 px-6 shadow-md border border-blue-200
-  hover:bg-blue-100 hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
-              on:click={() => handleClientClick(client.clientKey)}
+            <div
+              class="flex items-center justify-between bg-blue-50 text-black font-semibold rounded-lg py-4 px-6 shadow-md border border-blue-200 hover:bg-blue-100 hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
             >
-              <div class="flex flex-col">
-                <div class="text-lg">
-                  {client.firstName}
-                  {client.lastName}
+              <button
+                type="button"
+                class="flex-grow flex items-center justify-between text-left focus:outline-none"
+                on:click={() => handleClientClick(client.clientKey)}
+              >
+                <div class="flex flex-col">
+                  <div class="text-lg">
+                    {client.firstName}
+                    {client.lastName}
+                  </div>
+                  <div class="text-sm text-gray-600 mt-1">
+                    DOB: {new Date(client.dob).toLocaleDateString("en-US", {
+                      timeZone: "UTC",
+                    })}
+                  </div>
                 </div>
-                <div class="text-sm text-gray-600 mt-1">
-                  DOB: {new Date(client.dob).toLocaleDateString()}
-                </div>
-              </div>
-              <div class="text-blue-600 text-sm font-medium">View</div>
-            </button>
+
+                <div class="text-blue-600 text-base font-medium ml-4">View</div>
+              </button>
+              <!-- Outside clickable: Delete button -->
+              <button
+                type="button"
+                class="bg-red-500 text-white text-sm px-3 py-1 rounded hover:bg-red-600 hover:scale-105 hover:shadow-md transition-all duration-200 ml-4"
+                on:click={(e) => {
+                  e.stopPropagation();
+                  deleteClient(client.clientKey);
+                }}
+              >
+                Delete Client
+              </button>
+            </div>
           {/each}
         </div>
       {:else}
@@ -1102,7 +1200,10 @@
             {savedClientOndisplay.lastName}
           </div>
           <div class="text-md text-gray-600">
-            DOB: {savedClientOndisplay.dob}
+            DOB: {new Date(savedClientOndisplay.dob).toLocaleDateString(
+              "en-US",
+              { timeZone: "UTC" },
+            )}
           </div>
         </div>
       {/if}
@@ -1111,21 +1212,45 @@
         <!-- Summary row -->
         <div class="flex flex-col gap-3 mb-8 w-[90%] mx-auto">
           {#each savedNotesOndisplay as note}
-            <button
-              on:click={() => selectNote(note)}
-              class="w-full flex justify-between items-center bg-blue-50 hover:bg-blue-100 hover:shadow-lg hover:scale-[1.02] border border-blue-200 rounded-lg p-4 shadow-sm transition-all duration-200"
+            <div
+              class="flex items-center justify-between bg-blue-50 text-black font-semibold rounded-lg py-4 px-6 shadow-md border border-blue-200 hover:bg-blue-100 hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
             >
-              <div class="flex flex-col text-left">
-                <div class="text-xl font-semibold text-black-900">
-                  {savedClientOndisplay.firstName}
-                  {savedClientOndisplay.lastName}
+              <button
+                type="button"
+                class="flex-grow flex items-center justify-between text-left focus:outline-none"
+                on:click={() => selectNote(note)}
+              >
+                <div class="flex flex-col">
+                  <div class="text-lg">
+                    {savedClientOndisplay.firstName}
+                    {savedClientOndisplay.lastName}
+                  </div>
+                  <div class="text-sm text-gray-600 mt-1">
+                    {new Date(note.date).toLocaleDateString("en-US", {
+                      timeZone: "UTC",
+                    })}
+                  </div>
                 </div>
-                <div class="mt-1 text-lg font-semibold text-black-700">
-                  {new Date(note.date).toLocaleDateString()}
-                </div>
-              </div>
-              <div class="text-sm font-medium text-blue-600">View</div>
-            </button>
+
+                <div class="text-blue-600 text-base font-medium ml-4">View</div>
+              </button>
+
+              <button
+                type="button"
+                class="bg-red-500 text-white text-sm px-3 py-1 rounded hover:bg-red-600 hover:scale-105 hover:shadow-md transition-all duration-200 ml-4"
+                on:click={(e) => {
+                  e.stopPropagation();
+                  const confirmed = window.confirm(
+                    "Are you sure you want to delete this note?",
+                  );
+                  if (confirmed) {
+                    deleteNote(note.key, savedClientOndisplay.key);
+                  }
+                }}
+              >
+                Delete Note
+              </button>
+            </div>
           {/each}
         </div>
 
@@ -1197,6 +1322,14 @@
                           >
                             Close
                           </button>
+
+                          <button
+                            class="bg-red-500 text-white text-sm px-3 py-1 rounded hover:bg-red-600 hover:scale-105 hover:shadow-md transition-all duration-200"
+                            on:click={() =>
+                              deleteNote(note.key, savedClientOndisplay.key)}
+                          >
+                            Delete Note
+                          </button>
                         </div>
                       {/if}
                     </div>
@@ -1225,7 +1358,11 @@
   {/if}
 
   {#if toast}
-    <Toast message={toast.message} type={toast.type} />
+    <Toast
+      message={toast.message}
+      type={toast.type}
+      on:done={() => (toast = null)}
+    />
   {/if}
 </main>
 

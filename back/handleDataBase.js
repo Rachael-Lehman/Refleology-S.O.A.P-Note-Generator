@@ -6,7 +6,8 @@ import {
     S3Client,
     PutObjectCommand,
     GetObjectCommand,
-    DeleteObjectsCommand
+    DeleteObjectsCommand,
+    DeleteObjectCommand
 } from '@aws-sdk/client-s3';
 
 dotenv.config();
@@ -55,7 +56,7 @@ export async function uploadClientDocument(userId, body) {
     if (userId && note && clientData && date && isValidDate(date)) {
         userId = String(userId);
         const { firstName, lastName, dob } = clientData;
-       const clientKey = `CLIENT#${sanitize(firstName)}-${sanitize(lastName)}-${sanitize(dob)}`;
+        const clientKey = `CLIENT#${sanitize(firstName)}-${sanitize(lastName)}-${sanitize(dob)}`;
         const filename = `Date${safeName(date)}-${uuidv4()}.txt`;
         const s3Key = `${userId}/${filename}`;
         const rawDate = new Date(date);
@@ -213,61 +214,136 @@ export async function updateNote(userId, s3Key, content) {
 export async function DeleteAccount(userId) {
     let message = "Failed to Delete Account";
     let success = false;
-    if (userId) {
-        try {   // getting all clients
-            const result = await ddbDocClient.send(new QueryCommand({
-                TableName: process.env.AWS_DynamoDB_TableName,
-                KeyConditionExpression: "userId = :uid",
-                ExpressionAttributeValues: {
-                    ":uid": userId
-                }
-            }));
 
-            const clients = result.Items;
-            const allS3Keys = [];
-
-            for (const client of clients) {         // finding all sessionFiles
-                if (client.sessionFiles && Array.isArray(client.sessionFiles)) {
-                    for (const session of client.sessionFiles) {
-                        if (session.s3Key) {
-                            allS3Keys.push({ Key: session.s3Key });
-                        }
-                    }
-                }
-            }
-            if (allS3Keys.length > 0) {
-                const deleteResult = await s3.send(new DeleteObjectsCommand({
-                    Bucket: process.env.AWS_S3_BucketName,
-                    Delete: {
-                        Objects: allS3Keys,
-                        Quiet: false
-                    }
-                }));
-
-                console.log("S3 deleted:", deleteResult);
-            }
-            for (const client of clients) {
-                await ddbDocClient.send(new DeleteCommand({
-                    TableName: process.env.AWS_DynamoDB_TableName,
-                    Key: {
-                        userId: userId,
-                        clientKey: client.clientKey
-                    }
-                }));
-            }
-            success = true;
-        }
-        catch (err) {
-            console.error(message);
-            success = false;
-        }
+    if (!userId) {
+        console.error("No userId provided.");
+        return false;
     }
-    else {
-        console.error(message);
-        success = false;
+
+    try {
+        const result = await ddbDocClient.send(new QueryCommand({
+            TableName: process.env.AWS_DynamoDB_TableName,
+            KeyConditionExpression: "userId = :uid",
+            ExpressionAttributeValues: {
+                ":uid": userId
+            }
+        }));
+
+        const clients = result.Items || [];
+
+        for (const client of clients) {
+            const deleted = await DeleteClient(userId, client.clientKey);
+            if (!deleted) {
+                console.warn(`Failed to delete client: ${client.clientKey}`);
+            }
+        }
+        success = true;
+        console.log(`All clients deleted for user: ${userId}`);
+    } catch (err) {
+        console.error(`${message}:`, err);
     }
+
     return success;
 }
+
+
+export async function DeleteClient(userId, clientKey) {
+    if (!userId || !clientKey) {
+        console.warn("Missing userId or clientKey.");
+        return { success: false, message: "Missing credentials." };
+    }
+
+    try {
+        const clientResult = await ddbDocClient.send(new GetCommand({
+            TableName: process.env.AWS_DynamoDB_TableName,
+            Key: { userId, clientKey }
+        }));
+
+        if (!clientResult.Item) {
+            console.warn(`Client not found`);
+            return { success: false, message: "Client not found" };
+        }
+
+        const files = clientResult.Item.sessionFiles || [];
+        for (const file of files) {
+            const deleted = await DeleteNote(userId, clientKey, file.s3Key);
+            if (!deleted.success) {
+                console.warn(`DeleteClient: Failed to delete note ${file.s3Key}`);
+            }
+        }
+
+        console.log(`DeleteClient: Deleted all notes for client ${clientKey}`);
+        return { success: true, message: "Client and notes deleted" };
+    } catch (err) {
+        console.error(`DeleteClient error for ${clientKey}:`, err);
+        return { success: false, message: "DeleteClient Error" };
+    }
+}
+
+
+export async function DeleteNote(userId, clientKey, noteKey) {
+    if (!noteKey || !userId || !clientKey) {
+        console.warn("Missing required parameters for DeleteNote.");
+        return { success: false, message: "Missing credentials" };
+    }
+    try {
+
+        // Look up the client first to verify ownership of noteKey
+        const clientResult = await ddbDocClient.send(new GetCommand({
+            TableName: process.env.AWS_DynamoDB_TableName,
+            Key: { userId, clientKey }
+        }));
+        if (!clientResult.Item) {
+            console.warn(`DeleteNote: Client not found.`);
+            return { success: false, message: "DeleteNote: Client not found." };
+        }
+        const files = clientResult.Item.sessionFiles || [];
+        const fileMatch = files.find(f => f.s3Key === noteKey);
+
+        if (!fileMatch) {
+            console.warn(`DeleteNote: Note key ${noteKey} not found under client ${clientKey} for user ${userId}. Aborting delete.`);
+            return { success: false, message: "DeleteNote: Note not found under client" };
+        }
+
+        await s3.send(
+            new DeleteObjectCommand({
+                Bucket: process.env.AWS_S3_BucketName,
+                Key: noteKey
+            })
+        );
+
+        // Remove the deleted note from the files array in memory
+        const remainingFiles = files.filter(f => f.s3Key !== noteKey);
+        if (remainingFiles.length === 0) {
+            // This was the last file → delete the client record
+            await ddbDocClient.send(new DeleteCommand({
+                TableName: process.env.AWS_DynamoDB_TableName,
+                Key: { userId, clientKey }
+            }));
+            console.log(`DeleteNote: Deleted empty client ${clientKey} for user ${userId}.`);
+            return { success: true, message: "Note and empty client deleted" };
+        }
+        else {
+            // Otherwise, update the client with the new files array (optional but recommended)
+            await ddbDocClient.send(new UpdateCommand({
+                TableName: process.env.AWS_DynamoDB_TableName,
+                Key: { userId, clientKey },
+                UpdateExpression: "SET sessionFiles = :newFiles",
+                ExpressionAttributeValues: {
+                    ":newFiles": remainingFiles
+                }
+            }));
+            return { success: true, message: "Note deleted" };
+        }
+
+
+
+    } catch (err) {
+        console.error(`DeleteNote error for noteKey ${noteKey}:`, err);
+        return { success: false, message: "DeleteNote error" };;
+    }
+}
+
 
 const safeName = (str) => str.replace(/[^a-zA-Z0-9_-]/g, '');
 const sanitize = str => String(str).replace(/[^a-zA-Z0-9_-]/g, '');

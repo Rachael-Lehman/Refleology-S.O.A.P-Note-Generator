@@ -1,12 +1,18 @@
 <script>
+  import { createEventDispatcher } from "svelte";
   import { scale } from "svelte/transition";
 
   export let message = "";
   export let type = "info";
   let show = true;
 
+  const dispatch = createEventDispatcher();
+
   setTimeout(() => {
     show = false;
+    setTimeout(() => {
+      dispatch("done");
+    }, 300); 
   }, 3000);
 </script>
 

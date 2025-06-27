@@ -10,7 +10,7 @@ import { PassThrough } from 'stream';
 import bodyParser from 'body-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { getClients, uploadClientDocument, getNotes, updateNote, DeleteAccount } from './handleDataBase.js'
+import { getClients, uploadClientDocument, getNotes, updateNote, DeleteAccount, DeleteClient, DeleteNote } from './handleDataBase.js'
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
@@ -177,6 +177,7 @@ app.get('/api/notes', async (req, res) => {
   try {
     const { clientInfo, files } = await getNotes(req.user.userId, clientKey);
     console.log({ clientInfo, files });
+    clientInfo.key = clientKey;
     res.json({ clientInfo, files });
   } catch (err) {
     console.error(err);
@@ -219,9 +220,9 @@ app.post('/api/generate_pdf', (req, res) => {
   if (!content) {
     return res.status(400).json({ error: "Missing content." });
   }
-console.log(content)
+  console.log(content)
   content = content.replace(/\t/g, '    ');
-console.log(content)
+  console.log(content)
   const doc = new PDFDocument();
   const passthroughStream = new PassThrough();
 
@@ -242,6 +243,38 @@ console.log(content)
 
   doc.end();
 });
+
+app.post('/api/delete/client', async (req, res) => {
+  const { clientKey } = req.body;
+  if(!clientKey || !req.user.userId){
+    res.json({success: false, message: 'Missing credentials'});
+  }
+  try{
+    const results = await DeleteClient(req.user.userId, clientKey);
+    res.json({success: results.success, message: results.message});
+  }
+  catch(err){
+    res.json({success: false, message: 'Error Deleting Client'});
+  }
+});
+
+app.post('/api/delete/note', async (req, res) => {
+  const { clientKey, noteKey } = req.body;
+
+  if (!clientKey || !noteKey || !req.user?.userId) {
+    console.warn("Missing credentials");
+    return res.json({ success: false, message: 'Missing credentials' });
+  }
+
+  try {
+    const results = await DeleteNote(req.user.userId, clientKey, noteKey);
+    res.json({ success: results.success, message: results.message });
+  } catch (err) {
+    console.error("Error in delete note handler:", err);
+    res.json({ success: false, message: 'Error Deleting Note' });
+  }
+});
+
 
 app.post('/api/logout/', logOut);
 
