@@ -16,6 +16,7 @@
   import { onMount, tick } from "svelte";
   import { slide } from "svelte/transition";
   import Navbar from "./Navbar.svelte";
+  import ConfirmModal from "./ConfirmModal.svelte";
 
   let API_URL = import.meta.env.VITE_BackEnd_URL;
   let user = null;
@@ -32,6 +33,9 @@
   let editedContent = "";
   let selectedNoteKey = null;
   let googleDocsEnabled = false;
+  let showConfirm = false;
+  let confirmMessage = "";
+  let confirmAction = () => {};
 
   let formData = {
     clientFirstName: "",
@@ -327,11 +331,15 @@
         return;
       }
       clientList = clientList.filter((c) => c.clientKey !== clientKey);
-      if (savedClientOndisplay.key === clientKey) {
+      if (savedClientOndisplay && savedClientOndisplay.key === clientKey) {
         savedClientOndisplay = null;
         selectedNoteKey = null;
         savedNotesOndisplay = [];
       }
+      toast = {
+        message: result?.message,
+        type: "success",
+      };
     } catch (err) {
       console.error(err);
       toast = { message: "Error Deleting Client", type: "error" };
@@ -1173,13 +1181,15 @@
 
                 <div class="text-blue-600 text-base font-medium ml-4">View</div>
               </button>
-              <!-- Outside clickable: Delete button -->
               <button
                 type="button"
                 class="bg-red-500 text-white text-sm px-3 py-1 rounded hover:bg-red-600 hover:scale-105 hover:shadow-md transition-all duration-200 ml-4"
                 on:click={(e) => {
                   e.stopPropagation();
-                  deleteClient(client.clientKey);
+                  confirmMessage =
+                    "Are you sure you want to delete this client?";
+                  confirmAction = () => deleteClient(client.clientKey);
+                  showConfirm = true;
                 }}
               >
                 Delete Client
@@ -1240,12 +1250,10 @@
                 class="bg-red-500 text-white text-sm px-3 py-1 rounded hover:bg-red-600 hover:scale-105 hover:shadow-md transition-all duration-200 ml-4"
                 on:click={(e) => {
                   e.stopPropagation();
-                  const confirmed = window.confirm(
-                    "Are you sure you want to delete this note?",
-                  );
-                  if (confirmed) {
+                  confirmMessage = "Are you sure you want to delete this note?";
+                  confirmAction = () =>
                     deleteNote(note.key, savedClientOndisplay.key);
-                  }
+                  showConfirm = true;
                 }}
               >
                 Delete Note
@@ -1325,8 +1333,13 @@
 
                           <button
                             class="bg-red-500 text-white text-sm px-3 py-1 rounded hover:bg-red-600 hover:scale-105 hover:shadow-md transition-all duration-200"
-                            on:click={() =>
-                              deleteNote(note.key, savedClientOndisplay.key)}
+                            on:click={() => {
+                              confirmMessage =
+                                "Are you sure you want to delete this note?";
+                              confirmAction = () =>
+                                deleteNote(note.key, savedClientOndisplay.key);
+                              showConfirm = true;
+                            }}
                           >
                             Delete Note
                           </button>
@@ -1355,6 +1368,19 @@
         <p class="text-gray-500 italic">No saved notes</p>
       {/if}
     </SectionHeader>
+  {/if}
+
+  {#if showConfirm}
+    <ConfirmModal
+      message={confirmMessage}
+      onConfirm={() => {
+        confirmAction();
+        showConfirm = false;
+      }}
+      onCancel={() => {
+        showConfirm = false;
+      }}
+    />
   {/if}
 
   {#if toast}

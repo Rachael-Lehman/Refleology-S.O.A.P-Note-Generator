@@ -247,13 +247,16 @@ app.post('/api/generate_pdf', (req, res) => {
 app.post('/api/delete/client', async (req, res) => {
   const { clientKey } = req.body;
   if(!clientKey || !req.user.userId){
+    console.log('Missing credentials')
     res.json({success: false, message: 'Missing credentials'});
   }
   try{
     const results = await DeleteClient(req.user.userId, clientKey);
+     console.log('success')
     res.json({success: results.success, message: results.message});
   }
   catch(err){
+     console.log('Error Deleting Client')
     res.json({success: false, message: 'Error Deleting Client'});
   }
 });
