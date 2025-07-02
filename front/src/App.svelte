@@ -35,6 +35,13 @@
   let googleDocsEnabled = false;
   let showConfirm = false;
   let confirmMessage = "";
+  let editingClientKey = null;
+  let editFirstName = "";
+  let editLastName = "";
+  let editDOB = "";
+  let editingNoteKey = null;
+  let editNoteDate = "";
+
   let confirmAction = () => {};
 
   let formData = {
@@ -98,14 +105,21 @@
     "Wort",
   ];
   let anatomicalAreasBySystem = {
-    // All Parentheses will be removed from the text on file creation
+    // RULES:
+    // All parentheses will be removed from the text upon file creation.
+    // The text inside the parentheses will be automatically added to areas of emphasis, but it can be manually changed.
+    // Everything in the parentheses after a double dash (--) will be cut off.
+
     Musculoskeletal: [
       "Proximal hallux, (Cervical)",
       "1st Metatarsal, (Thoracic)",
       "1st Cuneiform to calcaneus, (Lumbar)",
       "Medial edge of posterior calcaneus, (Sacral and Coccyx)",
       "Interphalangeal joint of hallux, (Jaw)",
-      "MTP #1-5, (Collarbone)",
+      "MTP #1, (Collarbone)",
+      "MTP #2, (Collarbone)",
+      "MTP #3, (Collarbone)",
+      "MTP #4, (Collarbone)",
       "MTP #5, (Shoulder)",
       "Lateral MTP to tuberosity of 5th metatarsal, (Arm)",
       "Lateral tuberosity of 5th metatarsal, (Knee/Elbow)",
@@ -113,8 +127,11 @@
       "Lateral posterior calcaneofibular joint, (Pelvis/Hip)",
     ],
     Nervous: [
-      "Distal phalanges #1-5, (Brain)",
-      "Plantar aspect distal phalanges #1-5, (Brain)",
+      "Plantar aspect distal phalanges #1, (Brain)",
+      "Plantar aspect distal phalanges #2, (Brain)",
+      "Plantar aspect distal phalanges #3, (Brain)",
+      "Plantar aspect distal phalanges #4, (Brain)",
+      "Plantar aspect distal phalanges #5, (Brain)",
       "Medial aspect from 1st proximal phalanx to posterior calcaneus, (Spinal Cord)",
       "Medial edge 1st proximal phalanx, (Cervical)",
       "Medial edge 1st metatarsal, (Thoracic)",
@@ -138,47 +155,52 @@
       "Medial aspect of posterior process of talus, medial tubercle, (Uterus/Prostate)",
       "Lateral aspect of posterior process of talus, lateral tubercle, (Ovary/Testis)",
       "Aspect of posterior calcaneus, (Ovary/Testis)",
-      "Lateral aspect of posterior calcaneus to dorsal talocalcaneonavicular joint to medial posterior calcaneus, (Ova duct / Sperm duct)",
+      "Lateral aspect of posterior calcaneus to dorsal talocalcaneonavicular joint to medial posterior calcaneus, (Fallopian Tubes/ Vas Deferens)",
     ],
     Respiratory: [
       "Medial edge to plantar aspect of interphalangeal joint of hallux, (Nose)",
       "Plantar surface of medial base of distal hallux, (Nose)",
-      "Plantar aspect of distal and middle phalanges #2-5, (Sinuses)",
-      "Plantar surface of MTP joints #2-5, (Lungs)",
-      "Plantar aspect of proximal base of phalanges #2-5 to distal head of metatarsals #2-5, (Lungs)",
-      "Plantar surface distal to MTP joints #1-5, (Diaphragm - Paula Stone)",
+      "Plantar aspect of distal and middle phalanges #2, (Sinuses)",
+      "Plantar aspect of distal and middle phalanges #3, (Sinuses)",
+      "Plantar aspect of distal and middle phalanges #4, (Sinuses)",
+      "Plantar aspect of distal and middle phalanges #5, (Sinuses)",
+      "Plantar surface of MTP joints #2, (Lungs)",
+      "Plantar surface of MTP joints #3, (Lungs)",
+      "Plantar surface of MTP joints #4, (Lungs)",
+      "Plantar surface of MTP joints #5, (Lungs)",
       "Plantar aspect of intermediate metatarsal #1 transverse to metatarsal #4 to medial edge of metatarsal #5 tuberosity, (Diaphragm - Touchpoint)",
-      "Plantar surface from distal head of metatarsal #1 transverse to tuberosity of 5th metatarsal, (Diaphragm - Anatomical)",
     ],
     Cardiovascular: [
-      "Plantar aspect of 1st MTP joint R foot; #1-3 MTP joints L foot (Heart)",
+      "Plantar aspect of 1st MTP joint (Heart -- Right Side)",
+      "Plantar aspect of #1-3 MTP joints (Heart -- Left Side)",
       "Lateral edge of proximal hallux, (Carotid Artery)",
     ],
     Immune_Lymphatic: [
       "Lateral aspect of distal hallux, (Tonsils)",
       "Medial aspect of MTP joint, (Thymus)",
       "Medial edge of head of 1st metatarsal, (Thymus)",
-      "Plantar surface of the base of 4th-5th metatarsals, L foot (Spleen)",
+      "Plantar surface of the base of 4th-5th metatarsals, (Spleen)",
     ],
     Digestive: [
-      "Plantar aspect of metatarsals #5-1 R foot; metatarsal #1 L foot (Liver)",
-      "Plantar aspect of metatarsal #4, R foot (Gall Bladder)",
+      "Plantar aspect of metatarsals #5-1  (Liver -- Right Side)",
+      "Plantar aspect of metatarsal #1 (Liver -- Left Side)",
+      "Plantar aspect of metatarsal #4, (Gall Bladder)",
       "Medial edge to plantar aspect of interphalangeal joint of hallux, (Mouth)",
       "Medial edge of proximal hallux to proximal aspect of MTP joint, (Esophagus)",
       "Medial edge of proximal hallux to medial sesamoid bone on 1st metatarsal, (Esophagus)",
-      "Plantar aspect from lateral edge of metatarsal #1 to lateral edge of metatarsal #4, L foot (Stomach)",
-      "Plantar surface from medial edge of metatarsal #1 to medial edge of metatarsal #2, R foot (Duodenum)",
+      "Plantar aspect from lateral edge of metatarsal #1 to lateral edge of metatarsal #4, (Stomach)",
+      "Plantar surface from medial edge of metatarsal #1 to medial edge of metatarsal #2, (Duodenum)",
       "Plantar surface from distal cuneiforms & cuboid to distal calcaneus, (Small Intestines)",
-      "Plantar aspect of lateral intermediate cuboid, R foot (Ileocecal Valve)",
-      "Plantar surface of R foot from lateral distal calcaneus to proximal 5th metatarsal (Ascending Colon)",
+      "Plantar aspect of lateral intermediate cuboid, (Ileocecal Valve)",
+      "Plantar surface of from lateral distal calcaneus to proximal 5th metatarsal (Ascending Colon)",
       "Plantar aspect from lateral edge of cuboid across cuneonavicular joint, (Transverse Colon)",
-      "Plantar aspect from cuboid-5th metatarsal R foot to proximal medial 5th metatarsal L foot (Transverse Colon)",
       "Plantar surface of L lateral edge of cuboid and distal portion of calcaneus (Descending Colon)",
-      "Plantar surface from proximal medial 5th metatarsal L foot to intermediate calcaneus medial talus (D-Colon + Sigmoid)",
-      "Plantar surface of intermediate calcaneus, L foot (Sigmoid Colon)",
+      "Plantar surface from proximal medial 5th metatarsal to intermediate calcaneus medial talus (D-Colon + Sigmoid)",
+      "Plantar surface of intermediate calcaneus, (Sigmoid Colon)",
       "Medial aspect of distal calcaneus to posterior calcaneus, (Rectum)",
       "Medial aspect of calcaneotalar joint to posterior calcaneus, (Rectum)",
-      "Plantar surface of 1st metatarsocuneiform joint R foot to 4th metatarsocuneiform joint L foot (Pancreas)",
+      "Plantar surface of 1st metatarsocuneiform joint (Pancreas -- Right Side)",
+      "Plantar surface of 4th metatarsocuneiform joint (Pancreas -- Left Side)",
     ],
     Urinary: [
       "Plantar surface of 2nd metatarsal intermediate cuneiform & 3rd metatarsal lateral cuneiform, (Kidneys)",
@@ -359,8 +381,7 @@
         const response = await fetch(`${API_URL}/upload-note`, {
           method: "POST",
           headers: {
-            "Content-Type": "application/json", //,
-            //  Authorization: `Bearer ${user.token}`,
+            "Content-Type": "application/json",
           },
           credentials: "include",
           body: JSON.stringify({
@@ -443,6 +464,92 @@
     }
   }
 
+  async function updateClient(clientKey, first, last, DOB) {
+    if (clientKey && first && last && DOB) {
+      try {
+        const response = await fetch(`${API_URL}/api/edit_client`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            clientKey,
+            first,
+            last,
+            DOB,
+          }),
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          clientList.forEach((client) => {
+            if (client.clientKey === clientKey) {
+              client.firstName = first;
+              client.lastName = last;
+              client.dob = DOB;
+            }
+          });
+          clientList = await sortClients(clientList);
+          if (savedClientOndisplay?.key === clientKey) {
+            savedClientOndisplay.firstName = first;
+            savedClientOndisplay.lastName = last;
+            savedClientOndisplay.dob = DOB;
+          }
+        }
+        toast = {
+          message: result.message,
+          type: result.success ? "success" : "error",
+        };
+      } catch (err) {
+        console.error(err);
+        toast = { message: "Edit Client Error.", type: "error" };
+      }
+    } else {
+      toast = { message: "Missing credentials or Edit Data.", type: "error" };
+    }
+  }
+
+  async function updateNoteDate(clientKey, noteS3Key, newDate) {
+    if (clientKey && noteS3Key && newDate) {
+      try {
+        const response = await fetch(`${API_URL}/api/edit_noteDate`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            clientKey,
+            noteS3Key,
+            newDate,
+          }),
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          savedNotesOndisplay.forEach((note) => {
+            if (note.key === noteS3Key) {
+              note.date = newDate;
+            }
+          });
+          savedNotesOndisplay = await sortNotesByDate(savedNotesOndisplay);
+          // Force Svelte to recognize the change:
+          savedNotesOndisplay = [...savedNotesOndisplay];
+        }
+        toast = {
+          message: result.message,
+          type: result.success ? "success" : "error",
+        };
+      } catch (err) {
+        console.error(err);
+        toast = { message: "Edit Note Date Error.", type: "error" };
+      }
+    } else {
+      toast = { message: "Missing credentials or Edit Data.", type: "error" };
+    }
+  }
+
   async function fetchClients() {
     try {
       const res = await fetch(`${API_URL}/api/clients`, {
@@ -451,6 +558,7 @@
       if (res.ok) {
         console.log("Fetched clients:");
         clientList = await res.json();
+        clientList = await sortClients(clientList);
         console.log(clientList);
       } else {
         console.error("Failed to fetch clients:", await res.text());
@@ -474,6 +582,7 @@
 
         if (notesAndClient.files?.length > 0) {
           savedNotesOndisplay = notesAndClient.files;
+          savedNotesOndisplay = await sortNotesByDate(savedNotesOndisplay);
         }
 
         if (notesAndClient.clientInfo) {
@@ -502,7 +611,10 @@
     formData.date = new Date(formData.date).toLocaleDateString("en-US", {
       timeZone: "UTC",
     });
-    let soapNote = `SOAP Note\n\nClient Name: ${formData.clientFirstName} ${formData.clientLastName}\nDate: ${formData.date}\nReflexologist: ${formData.reflexologist}\n\n`;
+    clientDOB.date = new Date(formData.date).toLocaleDateString("en-US", {
+      timeZone: "UTC",
+    });
+    let soapNote = `Client Name: ${formData.clientFirstName} ${formData.clientLastName}\nDate: ${formData.date}\nReflexologist: ${formData.reflexologist}\n\n`;
     if (formData.chiefComplaint || formData.healthHistory) {
       soapNote += `Subjective:\n`;
       if (formData.chiefComplaint)
@@ -600,8 +712,13 @@
   function updateAreasOfEmphasis() {
     let areasOfEmphasisList = [];
     for (let i = 0; i < congAreas.length; i++) {
-      let formatedAnatomicalArea =
+      let rawAnatomicalArea =
         congAreas[i]?.anatomicalArea?.match(/\((.*?)\)/)?.[1] || "";
+
+      let formatedAnatomicalArea = rawAnatomicalArea.includes("--")
+        ? rawAnatomicalArea.split("--")[0].trim()
+        : rawAnatomicalArea.trim();
+
       if (areasOfEmphasisList.length === 0) {
         formData.areasOfEmphasis = `Focused on reflexes for ${toLower(formatedAnatomicalArea)}`;
         areasOfEmphasisList.push(formatedAnatomicalArea);
@@ -611,6 +728,7 @@
       }
     }
   }
+
   async function saveEdit(key, first, last, date) {
     console.log("Saving", key, "with new content:", editedContent);
     if (key && editedContent) {
@@ -701,9 +819,62 @@
       console.error(err);
     }
   }
+  async function downloadClientPDF() {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    const dateStr = `${yyyy}-${mm}-${dd}`;
+    const uniqueSuffix = Date.now();
+
+    let clientListInOrder = await sortClients(clientList);
+    let clientListDoc = `Client List:\n\n`;
+    clientListInOrder.forEach((client) => {
+      if (client && client.firstName && client.lastName) {
+        clientListDoc += `${client.firstName} ${client.lastName}\n`;
+      }
+    });
+
+    try {
+      if (clientListDoc) {
+        const response = await fetch(`${API_URL}/api/generate_pdf`, {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content: clientListDoc }),
+        });
+
+        if (!response.ok) {
+          console.error("Error generating PDF");
+          toast = { message: "Error generating PDF", type: "error" };
+          return;
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `ClientList_${dateStr}_${uniqueSuffix}.pdf`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        toast = { message: "PDF Generated!", type: "success" };
+      } else {
+        toast = {
+          message: "Error generating PDF: Missing File Info",
+          type: "error",
+        };
+      }
+    } catch (err) {
+      toast = {
+        message: "Error generating PDF:",
+        type: "error",
+      };
+      console.error(err);
+    }
+  }
   function displaySystemName(system) {
     if (system === "Immune_Lymphatic") {
-      return "Immune Lymphatic";
+      return "Immune/Lymphatic";
     }
     return system;
   }
@@ -721,6 +892,28 @@
 
   function deselectNote() {
     selectedNoteKey = null;
+  }
+  async function sortClients(list) {
+    list = list.sort((a, b) => {
+      const lastA = a.lastName.toLowerCase();
+      const lastB = b.lastName.toLowerCase();
+      if (lastA < lastB) return -1;
+      if (lastA > lastB) return 1;
+      const firstA = a.firstName.toLowerCase();
+      const firstB = b.firstName.toLowerCase();
+      if (firstA < firstB) return -1;
+      if (firstA > firstB) return 1;
+      return 0;
+    });
+    return list;
+  }
+  async function sortNotesByDate(list) {
+    list = list.sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      return dateB - dateA; // newest to oldest
+    });
+    return list;
   }
 </script>
 
@@ -1155,46 +1348,171 @@
       {/if}
     {/if}
 
-    <SectionHeader id="clients-listed" title="Client List">
+    <SectionHeader id="clients-listed" title="">
+      <div
+        class="flex items-center justify-between mb-6 pb-2 border-b-2 border-blue-500"
+      >
+        <h1 class="text-2xl font-bold text-gray-800">Client List</h1>
+        <button
+          type="button"
+          class="bg-green-500 text-white text-sm px-4 py-2 rounded hover:bg-green-600 transition"
+          on:click={downloadClientPDF}
+        >
+          Download PDF
+        </button>
+      </div>
       {#if clientList && clientList.length > 0}
-        <div class="flex flex-col gap-3 w-[90%] mx-auto">
+        <div class="flex flex-col gap-3 w-full">
           {#each clientList as client}
-            <div
-              class="flex items-center justify-between bg-blue-50 text-black font-semibold rounded-lg py-4 px-6 shadow-md border border-blue-200 hover:bg-blue-100 hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
-            >
-              <button
-                type="button"
-                class="flex-grow flex items-center justify-between text-left focus:outline-none"
-                on:click={() => handleClientClick(client.clientKey)}
-              >
-                <div class="flex flex-col">
-                  <div class="text-lg">
-                    {client.firstName}
-                    {client.lastName}
-                  </div>
-                  <div class="text-sm text-gray-600 mt-1">
-                    DOB: {new Date(client.dob).toLocaleDateString("en-US", {
-                      timeZone: "UTC",
-                    })}
-                  </div>
-                </div>
-
-                <div class="text-blue-600 text-base font-medium ml-4">View</div>
-              </button>
-              <button
-                type="button"
-                class="bg-red-500 text-white text-sm px-3 py-1 rounded hover:bg-red-600 hover:scale-105 hover:shadow-md transition-all duration-200 ml-4"
-                on:click={(e) => {
-                  e.stopPropagation();
-                  confirmMessage =
-                    "Are you sure you want to delete this client?";
-                  confirmAction = () => deleteClient(client.clientKey);
-                  showConfirm = true;
+            {#if editingClientKey === client.clientKey}
+              <!-- EDIT MODE: Inline form replacing the card -->
+              <form
+                class="flex flex-col bg-blue-50 text-black font-semibold rounded-lg py-4 px-6 shadow-md border border-blue-200 hover:bg-blue-100 hover:shadow-lg hover:scale-[1.02] transition-all duration-200 w-full"
+                on:submit|preventDefault={async () => {
+                  await updateClient(
+                    client.clientKey,
+                    editFirstName,
+                    editLastName,
+                    editDOB,
+                  );
+                  editingClientKey = null;
                 }}
               >
-                Delete Client
-              </button>
-            </div>
+                <div class="flex flex-col gap-3">
+                  <!-- First Name Row -->
+                  <div class="flex items-center gap-2">
+                    <label
+                      for="edit-firstname"
+                      class="w-28 text-gray-700 text-sm font-medium"
+                    >
+                      First Name:
+                    </label>
+                    <input
+                      id="edit-firstname"
+                      type="text"
+                      class="flex-grow px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      required
+                      bind:value={editFirstName}
+                    />
+                  </div>
+
+                  <!-- Last Name Row -->
+                  <div class="flex items-center gap-2">
+                    <label
+                      for="edit-lastname"
+                      class="w-28 text-gray-700 text-sm font-medium"
+                    >
+                      Last Name:
+                    </label>
+                    <input
+                      id="edit-lastname"
+                      type="text"
+                      class="flex-grow px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      required
+                      bind:value={editLastName}
+                    />
+                  </div>
+
+                  <!-- DOB Row -->
+                  <div class="flex items-center gap-2">
+                    <label
+                      for="edit-dob"
+                      class="w-28 text-gray-700 text-sm font-medium"
+                    >
+                      Date of Birth:
+                    </label>
+                    <input
+                      id="edit-dob"
+                      type="date"
+                      class="flex-grow px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      required
+                      bind:value={editDOB}
+                    />
+                  </div>
+
+                  <div class="flex gap-2 justify-end">
+                    <button
+                      type="button"
+                      class="bg-gray-400 text-white text-sm px-4 py-2 rounded hover:bg-gray-500 transition"
+                      on:click={() => (editingClientKey = null)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      class="bg-green-500 text-white text-sm px-4 py-2 rounded hover:bg-green-600 transition"
+                    >
+                      Save Changes
+                    </button>
+                  </div>
+                </div>
+              </form>
+            {:else}
+              <!-- NORMAL MODE: Original client card display -->
+              <div
+                class="flex items-center justify-between bg-blue-50 text-black font-semibold rounded-lg py-4 px-6 shadow-md border border-blue-200 hover:bg-blue-100 hover:shadow-lg hover:scale-[1.02] transition-all duration-200 w-full"
+              >
+                <button
+                  type="button"
+                  class="flex-grow flex items-center justify-between text-left focus:outline-none"
+                  on:click={() => handleClientClick(client.clientKey)}
+                >
+                  <div class="flex flex-col">
+                    <div class="text-lg">
+                      {client.firstName}
+                      {client.lastName}
+                    </div>
+                    <div class="text-sm text-gray-600 mt-1">
+                      DOB: {new Date(client.dob).toLocaleDateString("en-US", {
+                        timeZone: "UTC",
+                      })}
+                    </div>
+                  </div>
+
+                  <div class="text-blue-600 text-base font-medium ml-4">
+                    View
+                  </div>
+                </button>
+
+                <!-- Buttons for Delete + Edit in normal mode -->
+                <div class="flex flex-col ml-4 space-y-2">
+                  <button
+                    type="button"
+                    class="bg-red-500 text-white text-sm px-3 py-1 rounded hover:bg-red-600 hover:scale-105 hover:shadow-md transition-all duration-200"
+                    on:click={(e) => {
+                      e.stopPropagation();
+                      confirmMessage =
+                        "Are you sure you want to delete this client?";
+                      confirmAction = () => deleteClient(client.clientKey);
+                      showConfirm = true;
+                    }}
+                  >
+                    Delete Client
+                  </button>
+
+                  <button
+                    type="button"
+                    class="bg-blue-500 text-white text-sm px-3 py-1 rounded hover:bg-blue-600 hover:scale-105 hover:shadow-md transition-all duration-200"
+                    on:click={(e) => {
+                      e.stopPropagation();
+                      editingClientKey = client.clientKey;
+                      editFirstName = client.firstName;
+                      editLastName = client.lastName;
+                      if (client.dob) {
+                        const isoDate = new Date(client.dob)
+                          .toISOString()
+                          .slice(0, 10);
+                        editDOB = isoDate; // ensures YYYY-MM-DD
+                      } else {
+                        editDOB = "";
+                      }
+                    }}
+                  >
+                    Edit Client
+                  </button>
+                </div>
+              </div>
+            {/if}
           {/each}
         </div>
       {:else}
@@ -1222,43 +1540,117 @@
         <!-- Summary row -->
         <div class="flex flex-col gap-3 mb-8 w-[90%] mx-auto">
           {#each savedNotesOndisplay as note}
-            <div
-              class="flex items-center justify-between bg-blue-50 text-black font-semibold rounded-lg py-4 px-6 shadow-md border border-blue-200 hover:bg-blue-100 hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
-            >
-              <button
-                type="button"
-                class="flex-grow flex items-center justify-between text-left focus:outline-none"
-                on:click={() => selectNote(note)}
-              >
-                <div class="flex flex-col">
-                  <div class="text-lg">
-                    {savedClientOndisplay.firstName}
-                    {savedClientOndisplay.lastName}
-                  </div>
-                  <div class="text-sm text-gray-600 mt-1">
-                    {new Date(note.date).toLocaleDateString("en-US", {
-                      timeZone: "UTC",
-                    })}
-                  </div>
-                </div>
-
-                <div class="text-blue-600 text-base font-medium ml-4">View</div>
-              </button>
-
-              <button
-                type="button"
-                class="bg-red-500 text-white text-sm px-3 py-1 rounded hover:bg-red-600 hover:scale-105 hover:shadow-md transition-all duration-200 ml-4"
-                on:click={(e) => {
-                  e.stopPropagation();
-                  confirmMessage = "Are you sure you want to delete this note?";
-                  confirmAction = () =>
-                    deleteNote(note.key, savedClientOndisplay.key);
-                  showConfirm = true;
+            {#if editingNoteKey === note.key}
+              <!-- EDIT MODE: Inline form replacing the note card -->
+              <form
+                class="flex flex-col bg-blue-50 text-black font-semibold rounded-lg py-4 px-6 shadow-md border border-blue-200 hover:bg-blue-100 hover:shadow-lg hover:scale-[1.02] transition-all duration-200 w-full"
+                on:submit|preventDefault={async () => {
+                  updateNoteDate(
+                    savedClientOndisplay.key,
+                    note.key,
+                    editNoteDate,
+                  );
+                  editingNoteKey = null;
                 }}
               >
-                Delete Note
-              </button>
-            </div>
+                <div class="flex flex-col gap-3">
+                  <div class="flex items-center gap-2">
+                    <label
+                      for="edit-note-date"
+                      class="w-28 text-gray-700 text-sm font-medium"
+                    >
+                      New Date:
+                    </label>
+                    <input
+                      id="edit-note-date"
+                      type="date"
+                      required
+                      class="flex-grow px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      bind:value={editNoteDate}
+                    />
+                  </div>
+
+                  <div class="flex gap-2 justify-end">
+                    <button
+                      type="button"
+                      class="bg-gray-400 text-white text-sm px-4 py-2 rounded hover:bg-gray-500 transition"
+                      on:click={() => (editingNoteKey = null)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      class="bg-green-500 text-white text-sm px-4 py-2 rounded hover:bg-green-600 transition"
+                    >
+                      Submit
+                    </button>
+                  </div>
+                </div>
+              </form>
+            {:else}
+              <!-- NORMAL MODE: Original note card display -->
+              <div
+                class="flex items-center justify-between bg-blue-50 text-black font-semibold rounded-lg py-4 px-6 shadow-md border border-blue-200 hover:bg-blue-100 hover:shadow-lg hover:scale-[1.02] transition-all duration-200 w-full"
+              >
+                <button
+                  type="button"
+                  class="flex-grow flex items-center justify-between text-left focus:outline-none"
+                  on:click={() => selectNote(note)}
+                >
+                  <div class="flex flex-col">
+                    <div class="text-lg">
+                      {savedClientOndisplay.firstName}
+                      {savedClientOndisplay.lastName}
+                    </div>
+                    <div class="text-sm text-gray-600 mt-1">
+                      {new Date(note.date).toLocaleDateString("en-US", {
+                        timeZone: "UTC",
+                      })}
+                    </div>
+                  </div>
+
+                  <div class="text-blue-600 text-base font-medium ml-4">
+                    View
+                  </div>
+                </button>
+
+                <div class="flex flex-col ml-4 space-y-2">
+                  <button
+                    type="button"
+                    class="bg-red-500 text-white text-sm px-3 py-1 rounded hover:bg-red-600 hover:scale-105 hover:shadow-md transition-all duration-200"
+                    on:click={(e) => {
+                      e.stopPropagation();
+                      confirmMessage =
+                        "Are you sure you want to delete this note?";
+                      confirmAction = () =>
+                        deleteNote(note.key, savedClientOndisplay.key);
+                      showConfirm = true;
+                    }}
+                  >
+                    Delete Note
+                  </button>
+
+                  <button
+                    type="button"
+                    class="bg-blue-500 text-white text-sm px-3 py-1 rounded hover:bg-blue-600 hover:scale-105 hover:shadow-md transition-all duration-200"
+                    on:click={(e) => {
+                      e.stopPropagation();
+                      editingNoteKey = note.key;
+                      if (note.date) {
+                        const isoDate = new Date(note.date)
+                          .toISOString()
+                          .slice(0, 10);
+                        editNoteDate = isoDate; // ensures YYYY-MM-DD
+                      } else {
+                        editNoteDate = "";
+                      }
+                    }}
+                  >
+                    Edit Date
+                  </button>
+                </div>
+              </div>
+            {/if}
           {/each}
         </div>
 
@@ -1299,7 +1691,7 @@
                           Cancel
                         </button>
                       {:else}
-                        <div class="flex justify-end space-x-3 mt-4">
+                        <div class="flex flex-wrap justify-end gap-3 mt-4">
                           <button
                             class="text-sm font-semibold text-blue-700 hover:text-blue-900 hover:scale-110 transition-all duration-150"
                             on:click={() => startEdit(note)}

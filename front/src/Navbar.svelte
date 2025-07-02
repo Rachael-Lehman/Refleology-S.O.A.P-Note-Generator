@@ -57,7 +57,7 @@
 
 <nav class="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
   <div class="container mx-auto px-4">
-    <div class="flex flex-wrap items-center justify-around h-16">
+    <div class="flex flex-wrap items-center justify-around h-20">
       <!-- Logo/Brand -->
       <div class="flex items-center">
         <span class="text-lg font-semibold">SOAP Notes</span>

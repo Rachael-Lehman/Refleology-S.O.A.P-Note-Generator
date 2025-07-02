@@ -245,7 +245,72 @@ export async function DeleteAccount(userId) {
 
     return success;
 }
+export async function editClient(userId, clientKey, first, last, DOB) {
+    if (!userId || !clientKey || !first || !last || !DOB) {
+        console.warn("Missing credentials.");
+        return { success: false, message: "Missing credentials or update data." };
+    }
+    try {
+        const result = await ddbDocClient.send(new UpdateCommand({
+            TableName: process.env.AWS_DynamoDB_TableName,
+            Key: { userId, clientKey },
+            UpdateExpression: "SET firstName = :first, lastName = :last, dob = :dob",
+            ExpressionAttributeValues: {
+                ":first": first,
+                ":last": last,
+                ":dob": DOB,
+            }
+        }));
+        console.log('Client updated successfully.');
+        return { success: true, message: "Client updated successfully." };
+    } catch (err) {
+        console.error(`Edit Client error for ${clientKey}:`, err);
+        return { success: false, message: "Edit Client Error" };
+    }
+}
+export async function editNoteDate(userId, clientKey, noteS3Key, newDate) {
 
+    if (!userId || !clientKey || !newDate || !noteS3Key || !isValidDate(newDate)) {
+        return { success: false, message: "Missing credentials or update data." };
+    }
+
+    try {
+        const clientResult = await ddbDocClient.send(new GetCommand({
+            TableName: process.env.AWS_DynamoDB_TableName,
+            Key: { userId, clientKey }
+        }));
+
+        if (!clientResult.Item) {
+            console.warn(`editNoteDate: Client with key ${clientKey} not found in DynamoDB.`);
+            return { success: false, message: "Client not found." };
+        }
+
+        const files = clientResult.Item.sessionFiles || [];
+        const fileIndex = files.findIndex(f => f.s3Key === noteS3Key);
+
+        if (fileIndex === -1) {
+            console.warn(`editNoteDate: Note with s3Key ${noteS3Key} not found under client ${clientKey}.`);
+            return { success: false, message: "Note not found under client." };
+        }
+
+       const result = await ddbDocClient.send(new UpdateCommand({
+    TableName: process.env.AWS_DynamoDB_TableName,
+    Key: { userId, clientKey },
+    UpdateExpression: `SET sessionFiles[${fileIndex}].#d = :newDate`,
+    ExpressionAttributeNames: {
+        "#d": "date"
+    },
+    ExpressionAttributeValues: {
+        ":newDate": newDate
+    }
+}));
+        return { success: true, message: "Note date updated successfully." };
+
+    } catch (err) {
+        console.error(`editNoteDate: Error occurred for clientKey ${clientKey}:`, err);
+        return { success: false, message: "Edit Note Date Error" };
+    }
+}
 
 export async function DeleteClient(userId, clientKey) {
     if (!userId || !clientKey) {

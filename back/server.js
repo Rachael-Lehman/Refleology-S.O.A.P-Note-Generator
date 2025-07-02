@@ -10,7 +10,7 @@ import { PassThrough } from 'stream';
 import bodyParser from 'body-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { getClients, uploadClientDocument, getNotes, updateNote, DeleteAccount, DeleteClient, DeleteNote } from './handleDataBase.js'
+import { getClients, uploadClientDocument, getNotes, updateNote, DeleteAccount, DeleteClient, DeleteNote, editClient, editNoteDate } from './handleDataBase.js'
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
@@ -211,6 +211,35 @@ app.post('/api/update_note', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch notes" });
+  }
+});
+
+app.post('/api/edit_client', async (req, res) => {
+  const { clientKey, first, last, DOB } = req.body;
+  if (!req.user.userId || !clientKey || !first  || !last  || !DOB) {
+    res.json({success: false, message: 'Not authenticated or missing Edit Data'});
+  }
+  try {
+   const results = await editClient(req.user.userId, clientKey, first, last, DOB);
+     res.json({ success: results.success, message: results.message });
+  } catch (err) {
+    console.error(err);
+    res.json({ success: false, message: 'Edit Client Error' });
+  }
+});
+
+app.post('/api/edit_noteDate', async (req, res) => {
+  const { clientKey, noteS3Key, newDate } = req.body;
+  console.log(clientKey, noteS3Key, newDate )
+  if (!req.user.userId || !clientKey || !noteS3Key || !newDate) {
+     res.json({success: false, message: 'Not authenticated or missing Edit Note Data'});
+  }
+  try {
+    const results = await editNoteDate(req.user.userId, clientKey, noteS3Key, newDate);
+     res.json({ success: results.success, message: results.message });
+  } catch (err) {
+    console.error(err);
+    res.json({ success: false, message: 'Edit Note Date Error' });
   }
 });
 
