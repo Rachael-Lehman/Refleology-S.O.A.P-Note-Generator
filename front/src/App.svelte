@@ -1524,8 +1524,8 @@
       {#if savedClientOndisplay}
         <div class="mb-4 text-center">
           <div class="text-xl font-bold text-gray-800">
-            {savedClientOndisplay.firstName}
-            {savedClientOndisplay.lastName}
+            {savedClientOndisplay?.firstName}
+            {savedClientOndisplay?.lastName}
           </div>
           <div class="text-md text-gray-600">
             DOB: {new Date(savedClientOndisplay.dob).toLocaleDateString(
@@ -1599,8 +1599,8 @@
                 >
                   <div class="flex flex-col">
                     <div class="text-lg">
-                      {savedClientOndisplay.firstName}
-                      {savedClientOndisplay.lastName}
+                      {savedClientOndisplay?.firstName}
+                      {savedClientOndisplay?.lastName}
                     </div>
                     <div class="text-sm text-gray-600 mt-1">
                       {new Date(note.date).toLocaleDateString("en-US", {
