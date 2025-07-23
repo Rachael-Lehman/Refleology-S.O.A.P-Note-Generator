@@ -199,7 +199,9 @@ let anatomicalAreasBySystem = {
       
       try {
         console.log('Attempting to upload note:', noteContent);
-        const API_URL = 'http://localhost:3000';
+        //const API_URL = 'http://localhost:3000';
+        const API_URL = import.meta.env.VITE_API_URL;
+        const API_URL = "https://www.reflexologysoapnotes.com
         const response = await fetch(`${API_URL}/upload-note`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
