@@ -76,7 +76,10 @@
   ];
 
   let foot = ["Right foot", "Left foot", "Bilateral"];
-  let temperatureItems = ["Cool to touch", "Hot to touch"];
+  let temperatureItems = [
+  'Hypothermic (locally cool to touch)',
+  'Hyperthermic (locally warm or hot)'
+];
   let hydrationItems = [
   'Dehydrated (dry)',
   'Moist (damp)',
