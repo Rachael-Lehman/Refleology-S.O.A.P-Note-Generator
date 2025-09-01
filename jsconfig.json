@@ -29,8 +29,8 @@
    * to avoid limiting type declarations.
    */
   "include": [
-    "src/**/*.d.ts",
-    "src/**/*.js",
-    "src/**/*.svelte"
+    "front/src/**/*.d.ts*.d.ts",
+    "front/src/**/*.js*/*.js",
+    "front/src/**/*.sveltesvelte"
   ]
 }
