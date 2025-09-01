@@ -104,113 +104,81 @@
     "Current injury or bruises",
     "Wort",
   ];
-  let anatomicalAreasBySystem = {
-    // RULES:
+
+let anatomicalAreasBySystem = {
+   // RULES:
     // All parentheses will be removed from the text upon file creation.
     // The text inside the parentheses will be automatically added to areas of emphasis, but it can be manually changed.
     // Everything in the parentheses after a double dash (--) will be cut off.
 
-    Musculoskeletal: [
-      "Proximal hallux, (Cervical)",
-      "1st Metatarsal, (Thoracic)",
-      "1st Cuneiform to calcaneus, (Lumbar)",
-      "Medial edge of posterior calcaneus, (Sacral and Coccyx)",
-      "Interphalangeal joint of hallux, (Jaw)",
-      "MTP #1, (Collarbone)",
-      "MTP #2, (Collarbone)",
-      "MTP #3, (Collarbone)",
-      "MTP #4, (Collarbone)",
-      "MTP #5, (Shoulder)",
-      "Lateral MTP to tuberosity of 5th metatarsal, (Arm)",
-      "Lateral tuberosity of 5th metatarsal, (Knee/Elbow)",
-      "Lateral tuberosity of 5th metatarsal to calcaneofibular joint, (Knee/Leg/Hip)",
-      "Lateral posterior calcaneofibular joint, (Pelvis/Hip)",
-    ],
-    Nervous: [
-      "Plantar aspect distal phalanges #1, (Brain)",
-      "Plantar aspect distal phalanges #2, (Brain)",
-      "Plantar aspect distal phalanges #3, (Brain)",
-      "Plantar aspect distal phalanges #4, (Brain)",
-      "Plantar aspect distal phalanges #5, (Brain)",
-      "Medial aspect from 1st proximal phalanx to posterior calcaneus, (Spinal Cord)",
-      "Medial edge 1st proximal phalanx, (Cervical)",
-      "Medial edge 1st metatarsal, (Thoracic)",
-      "Medial edge metatarsocuneiform joint to talonavicular joint, (Lumbar)",
-      "Medial edge of medial cuneiform to navicular, (Lumbar)",
-      "Medial edge talonavicular joint to posterior calcaneus, (Sacrum & Coccyx)",
-      "Plantar aspect proximal edge of medial sesamoid on 1st metatarsal, (Vagus nerve)",
-      "Lateral edge of interphalangeal joint of hallux, (Phrenic nerve)",
-    ],
-    Endocrine: [
-      "Plantar surface of intermediate distal hallux, (Pituitary & Hypothalamus)",
-      "Medial edge of distal hallux, (Pineal)",
-      "Medial edge of proximal hallux, (Thyroid)",
-      "Medial aspect of MTP joint, (Thymus)",
-      "Medial edge of head of 1st metatarsal, (Thymus)",
-      "Plantar surface of lateral base of 1st metatarsal, (Adrenal)",
-      "Plantar aspect of lateral edge of 1st metatarsocuneiform joint, (Adrenal)",
-    ],
-    Reproductive: [
-      "Medial aspect of posterior calcaneus, (Uterus/Prostate)",
-      "Medial aspect of posterior process of talus, medial tubercle, (Uterus/Prostate)",
-      "Lateral aspect of posterior process of talus, lateral tubercle, (Ovary/Testis)",
-      "Aspect of posterior calcaneus, (Ovary/Testis)",
-      "Lateral aspect of posterior calcaneus to dorsal talocalcaneonavicular joint to medial posterior calcaneus, (Fallopian Tubes/ Vas Deferens)",
-    ],
-    Respiratory: [
-      "Medial edge to plantar aspect of interphalangeal joint of hallux, (Nose)",
-      "Plantar surface of medial base of distal hallux, (Nose)",
-      "Plantar aspect of distal and middle phalanges #2, (Sinuses)",
-      "Plantar aspect of distal and middle phalanges #3, (Sinuses)",
-      "Plantar aspect of distal and middle phalanges #4, (Sinuses)",
-      "Plantar aspect of distal and middle phalanges #5, (Sinuses)",
-      "Plantar surface of MTP joints #2, (Lungs)",
-      "Plantar surface of MTP joints #3, (Lungs)",
-      "Plantar surface of MTP joints #4, (Lungs)",
-      "Plantar surface of MTP joints #5, (Lungs)",
-      "Plantar aspect of intermediate metatarsal #1 transverse to metatarsal #4 to medial edge of metatarsal #5 tuberosity, (Diaphragm - Touchpoint)",
-    ],
-    Cardiovascular: [
-      "Plantar aspect of 1st MTP joint (Heart -- Right Side)",
-      "Plantar aspect of #1-3 MTP joints (Heart -- Left Side)",
-      "Lateral edge of proximal hallux, (Carotid Artery)",
-    ],
-    Immune_Lymphatic: [
-      "Lateral aspect of distal hallux, (Tonsils)",
-      "Medial aspect of MTP joint, (Thymus)",
-      "Medial edge of head of 1st metatarsal, (Thymus)",
-      "Plantar surface of the base of 4th-5th metatarsals, (Spleen)",
-    ],
-    Digestive: [
-      "Plantar aspect of metatarsals #5-1  (Liver -- Right Side)",
-      "Plantar aspect of metatarsal #1 (Liver -- Left Side)",
-      "Plantar aspect of metatarsal #4, (Gall Bladder)",
-      "Medial edge to plantar aspect of interphalangeal joint of hallux, (Mouth)",
-      "Medial edge of proximal hallux to proximal aspect of MTP joint, (Esophagus)",
-      "Medial edge of proximal hallux to medial sesamoid bone on 1st metatarsal, (Esophagus)",
-      "Plantar aspect from lateral edge of metatarsal #1 to lateral edge of metatarsal #4, (Stomach)",
-      "Plantar surface from medial edge of metatarsal #1 to medial edge of metatarsal #2, (Duodenum)",
-      "Plantar surface from distal cuneiforms & cuboid to distal calcaneus, (Small Intestines)",
-      "Plantar aspect of lateral intermediate cuboid, (Ileocecal Valve)",
-      "Plantar surface of from lateral distal calcaneus to proximal 5th metatarsal (Ascending Colon)",
-      "Plantar aspect from lateral edge of cuboid across cuneonavicular joint, (Transverse Colon)",
-      "Plantar surface of L lateral edge of cuboid and distal portion of calcaneus (Descending Colon)",
-      "Plantar surface from proximal medial 5th metatarsal to intermediate calcaneus medial talus (D-Colon + Sigmoid)",
-      "Plantar surface of intermediate calcaneus, (Sigmoid Colon)",
-      "Medial aspect of distal calcaneus to posterior calcaneus, (Rectum)",
-      "Medial aspect of calcaneotalar joint to posterior calcaneus, (Rectum)",
-      "Plantar surface of 1st metatarsocuneiform joint (Pancreas -- Right Side)",
-      "Plantar surface of 4th metatarsocuneiform joint (Pancreas -- Left Side)",
-    ],
-    Urinary: [
-      "Plantar surface of 2nd metatarsal intermediate cuneiform & 3rd metatarsal lateral cuneiform, (Kidneys)",
-      "Plantar aspect of 2nd-3rd metatarsocuneiform joint, (Kidneys)",
-      "Plantar aspect from lateral medial cuneiform to medial distal calcaneus, (Ureters)",
-      "Plantar aspect of 2nd cuneiform and mid navicular, (Ureters)",
-      "Medial aspect of talonavicular joint, (Bladder)",
-      "Medial aspect of sustentaculum tali, (Bladder)",
-    ],
-  };
+  "Musculoskeletal": [
+    "Proximal hallux, bilat (cervical)",
+    "1st Metatarsal, bilateral (thoracic)",
+    "1st Cuneiform to calcaneus, bilat (lumbar)",
+    "Medial edge of posterior calcaneus, bilat (sacral and coccyx)",
+    "Interphalangeal joint of hallux, bilat (jaw)",
+    "metatarsophalangeal #5, bilat (shoulder)",
+    "Lateral metatarsophalangeal to tuberosity of 5th metatarsal , bilat (arm)",
+    "Lateral tuberosity of 5th metatarsal to calcaneofibular joint, bilat (knee/leg/hip)",
+    "Lateral posterior calcaneofibular joint, bilat (hip/back/sciatic)",
+    "Medial edge to plantar interphalangeal joint of hallux, bilat (Neck)",
+
+  ],
+  "Nervous": [
+    "Distal phalanges 1-5, bilat (brain)",
+    "Medial aspect from 1st proximal phalanx to posterior calcaneus, bilat (spinal cord)",
+    "Medial edge 1st proximal phalanx, bilat (cervical)",
+    "Medial edge 1st metatarsal, bilat (thoracic)",
+    "Medial edge of medial cuneiform to navicular, bilat (lumbar)",
+    "Medial edge talonavicular joint to posterior calcaneus, bilat (sacrum & coccyx)",
+  ],
+  "Endocrine/Reproductive": [
+    "Pituitary & Hypothalamus: Bilat plantar surface of intermediate distal hallux",
+    "Pineal: Medial edge of distal hallux, bilat",
+    "Thyroid: Medial edge of proximal hallux, bilat",
+    "Thymus: Medial aspect of metatarsophalangeal joint, bilat",
+    "Thymus: Medial edge of head of 1st metatarsal, bilat",
+    "Adrenal: Lateral base of 1st metatarsal, bilat",
+    "Adrenal: Lateral edge of 1st metatarsocuneiform joint, bilat",
+    "Uterus/Prostate: Medial aspect of posterior calcaneus, bilat",
+    "Uterus/Prostate: Medial aspect of talus, medial tubercle, bilat",
+    "Ovary/Testis: Lateral aspect of posterior talus and calcaneus, bilat",
+    "Vas Deferens/Fallopian Tubes: Lateral posterior calcaneus to talonavicular joint to medial posterior calcaneus, bilat"
+  ],
+  "Respiratory": [
+    "Sinuses: Plantar distal and middle phalanges 2-5, bilat",
+    "Lungs: Plantar metatarsophalangeal joints 2-5, bilat",
+    "Lungs: Base of phalanges 2-5 to distal head of metatarsal 2-5, bilat",
+    "Diaphragm: Distal head of metatarsal #1 across to tuberosity of 5th metatarsal, bilat"
+  ],
+  "Cardiovascular": [
+    "Heart: 1st metatarsophalangeal joint on right foot; 1-3 metatarsophalangeal joint on left foot",
+  ],
+  "Immune/Lymphatic": [
+    "Thymus: Medial aspect of head of 1st metatarsal, bilat",
+    "Spleen: Base of 4th-5th metatarsal, left foot (plantar surface)"
+  ],
+  "Digestive": [
+    "Liver: Metatarsal 5-1 on right foot and metatarsal 1 on left foot (plantar aspect)",
+    "Gall Bladder: Right plantar aspect of metatarsal 4",
+    "Esophagus: Medial edge of proximal hallux to metatarsophalangeal joint, bilat",
+    "Stomach: Left plantar from lateral metatarsal 1 to lateral edge of metatarsal #4",
+    "Small Intestines: Distal cuneiforms and cuboid to distal calcaneus, bilat",
+    "Ileocecal Valve: Lateral intermediate cuboid, right foot (plantar)",
+    "Ascending Colon: Lateral distal calcaneus to proximal metatarsal 5, right foot (plantar)",
+    "Transverse Colon: Cuboid across navicular joint, bilat",
+    "Descending Colon: Lateral cuboid and distal calcaneus, left foot",
+    "Descending Colon: Medial 5th metatarsal to intermediate calcaneus to medial talus, left foot",
+    "Sigmoid Flexure: Intermediate calcaneus, left foot (plantar)",
+    "Rectum: Medial distal calcaneus to posterior calcaneus, bilat",
+    "Pancreas: 1st to 4th metatarsocuneiform joints, throughout both feet (plantar)"
+  ],
+  "Urinary": [
+    "Kidneys: Metatarsocuneiform joints 2 and 3, bilat",
+    "Ureters: Medial cuneiform to medial distal calcaneus (plantar), bilat",
+    "Bladder: Medial talonavicular joint and sustentaculum tali, bilat"
+  ]
+};
 
   // Add smooth scrolling behavior
   onMount(() => {
