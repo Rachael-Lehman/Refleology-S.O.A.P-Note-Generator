@@ -78,32 +78,43 @@
   let foot = ["Right foot", "Left foot", "Bilateral"];
   let temperatureItems = ["Cool to touch", "Hot to touch"];
   let hydrationItems = [
-    "Dryness",
-    "Damp or clammy tissue",
-    "Sweatyness",
-    "Profusely sweatyness",
-    "Boggyness",
-    "Congestion",
-    "Sponginess",
-  ];
-  let colorItems = ["Paleness", "Redness (erythematous)", "Blotchy"];
+  'Dehydrated (dry)',
+  'Moist (damp)',
+  'Hyperhydrated (excessively wet)',
+  'Edematous (swollen)',
+  'Congested (fluid-backup)',
+  'Pitted (indentation forms)'
+];
+
+  let colorItems = [
+  'Erythematous (red)',
+  'Pallid (pale)',
+  'Cyanotic (Bluish)',
+  'Dusky (slightly dark or muted color)',
+  'Ecchymotic (bruised)'
+];
+
   let tissueToneItems = [
-    "Resistant tissue tone",
-    "Firm tissue tone",
-    "Stringy/ropy tissue tone",
-    "Contracted tissue tone",
-    "Relaxed tissue tone",
-    "Flaccid tissue tone",
-    "Nodular tissue tone",
-  ];
+  'Hypertonic (increased tension) tissue tone',
+  'Hypotonic (decreased tension) tissue tone',
+  'Firm tissue tone',
+  'Soft tissue tone',
+  'Ropy (cord-like) tissue tone',
+  'Contracted (tight) tissue tone',
+  'Relaxed (loose) tissue tone',
+  'Nodular (small lumps) tissue tone',
+  'Fibrotic (dense) tissue tone',
+  'Flaccid (weak) tissue tone'
+];
+
   let TissueFindings = [
-    "Calluses",
-    "Puffiness",
-    "Unusual color or rashes",
-    "Scar tissue",
-    "Current injury or bruises",
-    "Wort",
-  ];
+  'Callus',
+  'Wort',
+  'Bruise',
+  'Scar',
+  'Rash',
+  'Puffiness'
+];
 
 let anatomicalAreasBySystem = {
    // RULES:
@@ -111,74 +122,114 @@ let anatomicalAreasBySystem = {
     // The text inside the parentheses will be automatically added to areas of emphasis, but it can be manually changed.
     // Everything in the parentheses after a double dash (--) will be cut off.
 
-  "Musculoskeletal": [
-    "Proximal hallux, bilat (cervical)",
-    "1st Metatarsal, bilateral (thoracic)",
-    "1st Cuneiform to calcaneus, bilat (lumbar)",
-    "Medial edge of posterior calcaneus, bilat (sacral and coccyx)",
-    "Interphalangeal joint of hallux, bilat (jaw)",
-    "metatarsophalangeal #5, bilat (shoulder)",
-    "Lateral metatarsophalangeal to tuberosity of 5th metatarsal , bilat (arm)",
-    "Lateral tuberosity of 5th metatarsal to calcaneofibular joint, bilat (knee/leg/hip)",
-    "Lateral posterior calcaneofibular joint, bilat (hip/back/sciatic)",
-    "Medial edge to plantar interphalangeal joint of hallux, bilat (Neck)",
+  "Musculoskeletal System": [
+    "(Neck) Plantar aspect, distal ends of 1st through 5th proximal phalanges",
+    "(Shoulder - Anterior) Plantar aspect, shaft of 4th proximal phalange through shaft of 5th proximal phalange to distal end of 5th metatarsal",
+    "(Shoulder - Posterior) Dorsal aspect, proximal end of 4th and 5th proximal phalanges to distal end of 4th and 5th metatarsals",
+    "(Arm) Lateral aspect, proximal end of 5th metatarsal to proximal end of 5th proximal phalange",
+    "(Hip / Knee / Leg) Plantar aspect, anterior margin of calcaneus to cuboid to proximal end of 5th metatarsal",
+    "(Hip / Back / Sciatic) Medial aspect, posterior to medial malleolus",
+    "(Spine) Medial aspect, interphalangeal joint of 1st phalange to posterior calcaneus",
+    "(Cervical) Medial aspect, interphalangeal joint of 1st phalange to proximal end of 1st proximal phalange",
+    "(Thoracic) Medial aspect, distal end of 1st metatarsal to proximal end of 1st metatarsal",
+    "(Lumbar) Medial aspect, medial cuneiform to posterior margin of navicular",
+    "(Sacrum) Medial aspect, distal end of talus to medial margin of calcaneus central body",
+    "(Coccyx) Medial aspect, posterior tubercle of talus to posterior margin of calcaneus"
+  ],
 
+  "Nervous System": [
+    "(Brain) Plantar aspect, 1st distal phalange",
+    "(Brain) Plantar aspect, 2nd distal phalange",
+    "(Brain) Plantar aspect, 3rd distal phalange",
+    "(Brain) Plantar aspect, 4th distal phalange",
+    "(Brain) Plantar aspect, 5th distal phalange",
+    "(Eyes) Plantar aspect, 2nd proximal phalange to 3rd proximal phalange",
+    "(Ears) Plantar aspect, distal end of 4th proximal phalange to 5th proximal phalange",
+    "(Spine) Medial aspect, interphalangeal joint of 1st phalange to posterior calcaneus",
+    "(Cervical) Medial aspect, interphalangeal joint of 1st phalange to proximal end of 1st proximal phalange",
+    "(Thoracic) Medial aspect, distal end of 1st metatarsal to proximal end of 1st metatarsal",
+    "(Lumbar) Medial aspect, medial cuneiform to posterior margin of navicular",
+    "(Sacrum) Medial aspect, distal end of talus to medial margin of calcaneus central body",
+    "(Coccyx) Medial aspect, posterior tubercle of talus to posterior margin of calcaneus",
+    "(Solar Plexus) Plantar aspect, inferior to distal end of 2nd metatarsal",
+    "(Sciatic) Plantar aspect, medial margin of calcaneus central body to lateral margin calcaneus central body"
   ],
-  "Nervous": [
-    "Distal phalanges 1-5, bilat (brain)",
-    "Medial aspect from 1st proximal phalanx to posterior calcaneus, bilat (spinal cord)",
-    "Medial edge 1st proximal phalanx, bilat (cervical)",
-    "Medial edge 1st metatarsal, bilat (thoracic)",
-    "Medial edge of medial cuneiform to navicular, bilat (lumbar)",
-    "Medial edge talonavicular joint to posterior calcaneus, bilat (sacrum & coccyx)",
+
+  "Endocrine System": [
+    "(Pituitary / Pineal) Plantar aspect, proximal end of 1st distal phalange",
+    "(Thyroid / Parathyroid) Medial aspect, distal end of 1st proximal phalange",
+    "(Thymus) Plantar aspect, 1st metatarsophalangeal joint",
+    "(Adrenals) Plantar aspect, lateral side of proximal end of 1st metatarsal",
+    "(Pancreas - Left Side) Plantar aspect, proximal end of 1st metatarsal to inferior shaft of 2nd and 3rd metatarsals",
+    "(Pancreas - Right Side) Plantar aspect, medial margin of proximal end of 1st metatarsal",
+    "(Liver - Left Side) Plantar aspect, inferior to distal end of 1st metatarsal",
+    "(Liver - Right Side) Plantar aspect, inferior to distal ends of 1st to medial margin of 5th metatarsal, proximal end of 5th metatarsal, superior to the proximal end of 4th metatarsal, shafts of 3rd to 1st metatarsals"
   ],
-  "Endocrine/Reproductive": [
-    "Pituitary & Hypothalamus: Bilat plantar surface of intermediate distal hallux",
-    "Pineal: Medial edge of distal hallux, bilat",
-    "Thyroid: Medial edge of proximal hallux, bilat",
-    "Thymus: Medial aspect of metatarsophalangeal joint, bilat",
-    "Thymus: Medial edge of head of 1st metatarsal, bilat",
-    "Adrenal: Lateral base of 1st metatarsal, bilat",
-    "Adrenal: Lateral edge of 1st metatarsocuneiform joint, bilat",
-    "Uterus/Prostate: Medial aspect of posterior calcaneus, bilat",
-    "Uterus/Prostate: Medial aspect of talus, medial tubercle, bilat",
-    "Ovary/Testis: Lateral aspect of posterior talus and calcaneus, bilat",
-    "Vas Deferens/Fallopian Tubes: Lateral posterior calcaneus to talonavicular joint to medial posterior calcaneus, bilat"
+
+  "Reproductive System": [
+    "(Prostate / Uterus) Medial aspect, posterior margin of calcaneus",
+    "(Ovary / Testes) Lateral aspect, posterior tubercle of talus",
+    "(Fallopian Tubes / Vas Deferens / Pelvic Line) Dorsal aspect, medial posterior margin of navicular to lateral posterior margin of cuboid"
   ],
-  "Respiratory": [
-    "Sinuses: Plantar distal and middle phalanges 2-5, bilat",
-    "Lungs: Plantar metatarsophalangeal joints 2-5, bilat",
-    "Lungs: Base of phalanges 2-5 to distal head of metatarsal 2-5, bilat",
-    "Diaphragm: Distal head of metatarsal #1 across to tuberosity of 5th metatarsal, bilat"
+
+  "Respiratory System": [
+    "(Sinus) Plantar aspect, 1st intermediate and proximal phalanges",
+    "(Sinus) Plantar aspect, 2nd intermediate and proximal phalanges",
+    "(Sinus) Plantar aspect, 3rd intermediate and proximal phalanges",
+    "(Sinus) Plantar aspect, 4th intermediate and proximal phalanges",
+    "(Sinus) Plantar aspect, 5th intermediate and proximal phalanges",
+    "(Chest / Lung - Posterior) Plantar aspect, proximal end of 1st proximal phalange to distal end of 1st metatarsal",
+    "(Chest / Lung - Posterior) Plantar aspect, proximal end of 2nd proximal phalange to distal end of 2nd metatarsal",
+    "(Chest / Lung - Posterior) Plantar aspect, proximal end of 3rd proximal phalange to distal end of 3rd metatarsal",
+    "(Chest / Lung - Posterior) Plantar aspect, proximal end of 4th proximal phalange to distal end of 4th metatarsal",
+    "(Chest / Lung - Posterior) Plantar aspect, proximal end of 5th proximal phalange to distal end of 5th metatarsal",
+    "(Chest / Lung - Anterior) Dorsal aspect, 1st metatarsal and dorsal interosseus",
+    "(Chest / Lung - Anterior) Dorsal aspect, 2nd metatarsal and dorsal interosseus",
+    "(Chest / Lung - Anterior) Dorsal aspect, 3rd metatarsal and dorsal interosseus",
+    "(Chest / Lung - Anterior) Dorsal aspect, 4th metatarsal and dorsal interosseus",
+    "(Chest / Lung - Anterior) Dorsal aspect, 5th metatarsal and dorsal interosseus",
+    "(Diaphragm) Plantar aspect, inferior to distal ends of 1st to 5th metatarsals"
   ],
-  "Cardiovascular": [
-    "Heart: 1st metatarsophalangeal joint on right foot; 1-3 metatarsophalangeal joint on left foot",
+
+  "Cardiovascular System": [
+    "(Heart) Medial aspect, proximal end of 1st proximal phalange to distal end of 1st metatarsal"
   ],
-  "Immune/Lymphatic": [
-    "Thymus: Medial aspect of head of 1st metatarsal, bilat",
-    "Spleen: Base of 4th-5th metatarsal, left foot (plantar surface)"
+
+  "Lymphatic System": [
+    "(Spleen) Plantar aspect, shaft of 4th and 5th metatarsal to superior to the proximal end of 5th metatarsal",
+    "(Lymphatic - Lower) Dorsal aspect, medial posterior margin of navicular to lateral posterior margin of cuboid"
   ],
-  "Digestive": [
-    "Liver: Metatarsal 5-1 on right foot and metatarsal 1 on left foot (plantar aspect)",
-    "Gall Bladder: Right plantar aspect of metatarsal 4",
-    "Esophagus: Medial edge of proximal hallux to metatarsophalangeal joint, bilat",
-    "Stomach: Left plantar from lateral metatarsal 1 to lateral edge of metatarsal #4",
-    "Small Intestines: Distal cuneiforms and cuboid to distal calcaneus, bilat",
-    "Ileocecal Valve: Lateral intermediate cuboid, right foot (plantar)",
-    "Ascending Colon: Lateral distal calcaneus to proximal metatarsal 5, right foot (plantar)",
-    "Transverse Colon: Cuboid across navicular joint, bilat",
-    "Descending Colon: Lateral cuboid and distal calcaneus, left foot",
-    "Descending Colon: Medial 5th metatarsal to intermediate calcaneus to medial talus, left foot",
-    "Sigmoid Flexure: Intermediate calcaneus, left foot (plantar)",
-    "Rectum: Medial distal calcaneus to posterior calcaneus, bilat",
-    "Pancreas: 1st to 4th metatarsocuneiform joints, throughout both feet (plantar)"
+
+  "Digestive System": [
+    "(Stomach - Left Side) Plantar aspect, shaft of the 1st metatarsal to inferior distal ends of 3rd to 5th metatarsals, superior proximal end of 5th to 1st metatarsals",
+    "(Stomach - Right Side) Plantar aspect, proximal end of 1st metatarsal",
+    "(Small Intestine) Plantar aspect, all cuneiforms and cuboid to distal margin of talus and calcaneus",
+    "(Liver - Left Side) Plantar aspect, inferior to distal end of 1st metatarsal",
+    "(Liver - Right Side) Plantar aspect, inferior to distal ends of 1st to medial margin of 5th metatarsal, proximal end of 5th metatarsal, superior to the proximal end of 4th metatarsal, shafts of 3rd to 1st metatarsals",
+    "(Gall Bladder) Plantar aspect, between shafts of 4th and 5th metatarsals",
+    "(Pancreas - Left Side) Plantar aspect, proximal end of 1st metatarsal to the shafts of 2nd, 3rd, and 4th metatarsals",
+    "(Pancreas - Right Side) Plantar aspect, medial margin of proximal end of 1st metatarsal",
+    "(Ileocecal Valve) Plantar aspect, intermediate margin of posterior calcaneus central body",
+    "(Ascending Colon) Plantar aspect, lateral margin of calcaneus central body to proximal end of 5th metatarsal",
+    "(Transverse Colon) Plantar aspect, navicular, cuneiforms, cuboid to proximal end of 5th metatarsal",
+    "(Descending Colon) Plantar aspect, proximal end of 5th metatarsal to lateral margin of calcaneus central body",
+    "(Sigmoid Flexure) Plantar aspect, lateral margin of calcaneus central body",
+    "(Rectum) Plantar aspect, posterior calcaneus to medial margin of calcaneus",
+    "(Anus) Plantar aspect, medial margin of talus"
   ],
-  "Urinary": [
-    "Kidneys: Metatarsocuneiform joints 2 and 3, bilat",
-    "Ureters: Medial cuneiform to medial distal calcaneus (plantar), bilat",
-    "Bladder: Medial talonavicular joint and sustentaculum tali, bilat"
-  ]
-};
+
+  "Urinary System": [
+    "(Kidney) Plantar aspect, inferior to lateral proximal end of 1st metatarsal, proximal end of 2nd metatarsal, medial aspect of proximal end of 3rd metatarsal, and intermediate cuneiform",
+    "(Ureter) Plantar aspect, proximal end of 2nd cuneiform to distal end of talus",
+    "(Bladder) Plantar aspect, medial margin of trochlear surface of talus"
+  ],
+
+  "Horizontal Guidelines": [
+    "(Shoulder Line) Plantar aspect, shaft of 1st to 5th proximal phalanges",
+    "(Diaphragm Line) Plantar aspects inferior to distal ends of 1st to 5th metatarsals",
+    "(Waist Line) Plantar aspect, proximal end of 1st to 5th metatarsals",
+    "(Pelvic Line) Plantar aspect, anterior medial margin of calcaneus to anterior lateral margin of calcaneus"
+]};
 
   // Add smooth scrolling behavior
   onMount(() => {
