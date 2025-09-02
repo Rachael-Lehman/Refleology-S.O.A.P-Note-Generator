@@ -5,9 +5,9 @@ export default defineConfig(({ mode }) => {
   // Load env vars
   const env = loadEnv(mode, process.cwd());
 
-   return {
+  return {
     plugins: [svelte()],
-    base: mode === "production" ? "/Refleology-S.O.A.P-Note-Generator/" : "/", 
+    base: mode === "production" ? "/Refleology-S.O.A.P-Note-Generator/" : "/",
     server: {
       proxy: {
         '/api': {
