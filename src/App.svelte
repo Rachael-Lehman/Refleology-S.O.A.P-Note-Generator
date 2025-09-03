@@ -18,7 +18,7 @@
   import Navbar from "./Navbar.svelte";
   import ConfirmModal from "./ConfirmModal.svelte";
 
-  let API_URL = import.meta.env.VITE_BackEnd_URL;
+  let API_URL = "https://site--reflexology-soap-notes--dppdxhrnkrph.code.run/" //import.meta.env.VITE_BackEnd_URL;
   let user = null;
   let clientList = null;
   let isLoading = true;
